@@ -1,0 +1,388 @@
+{
+  "captions": {
+    "default": {
+      "font": "Arial",
+      "size": 13,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 3,
+      "margin_v": 30,
+      "title_colour": "white",
+      "bottom_colour": "yellow"
+    },
+    "speed": {
+      "font": "Arial",
+      "size": 13,
+      "primary": "&H0000FFFF",
+      "outline_colour": "&H00000000",
+      "outline": 3,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "yellow"
+    },
+    "clean_white": {
+      "font": "Segoe UI Black",
+      "size": 15,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "white"
+    },
+    "pink_pop": {
+      "font": "Arial Black",
+      "size": 14,
+      "primary": "&H0000F0FF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#E5195A"
+    },
+    "minimal_dark": {
+      "font": "Bahnschrift",
+      "size": 16,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00202020",
+      "outline": 3,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "black"
+    },
+    "neon_cyan": {
+      "font": "Impact",
+      "size": 17,
+      "primary": "&H0000FFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "yellow",
+      "title_box": "#00E5FF"
+    },
+    "classic_impact": {
+      "font": "Impact",
+      "size": 18,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 5,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#D00000"
+    },
+    "fun_comic": {
+      "font": "Comic Sans MS",
+      "size": 14,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "#FFD400"
+    },
+    "serif_news": {
+      "font": "Georgia",
+      "size": 15,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 3,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#0A3D91"
+    },
+    "lime_pop": {
+      "font": "Arial Black",
+      "size": 14,
+      "primary": "&H0014FF39",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "#39FF14"
+    },
+    "sport_orange": {
+      "font": "Franklin Gothic Medium",
+      "size": 16,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#FF6A00"
+    },
+    "grad_sunset": {
+      "font": "Segoe UI Black",
+      "size": 15,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#FF512F",
+      "title_box_to": "#DD2476"
+    },
+    "grad_ocean": {
+      "font": "Arial Black",
+      "size": 14,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#00C6FF",
+      "title_box_to": "#0072FF"
+    },
+    "grad_neon": {
+      "font": "Impact",
+      "size": 17,
+      "primary": "&H0000FFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "yellow",
+      "title_box": "#F000FF",
+      "title_box_to": "#00E5FF"
+    },
+    "grad_gold": {
+      "font": "Bahnschrift",
+      "size": 16,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "#F7971E",
+      "title_box_to": "#FFD200"
+    },
+    "grad_mint": {
+      "font": "Franklin Gothic Medium",
+      "size": 16,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "#11998E",
+      "title_box_to": "#38EF7D"
+    },
+    "grad_purple": {
+      "font": "Segoe UI Black",
+      "size": 15,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#7F00FF",
+      "title_box_to": "#E100FF"
+    },
+    "grad_fire": {
+      "font": "Impact",
+      "size": 18,
+      "primary": "&H0000FFFF",
+      "outline_colour": "&H00000000",
+      "outline": 5,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#F83600",
+      "title_box_to": "#F9D423"
+    },
+    "anton_punch": {
+      "font": "Anton",
+      "size": 20,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "#FFD400",
+      "title_font": "Anton-Regular.ttf"
+    },
+    "bebas_clean": {
+      "font": "Bebas Neue",
+      "size": 22,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 3,
+      "margin_v": 60,
+      "title_colour": "black",
+      "bottom_colour": "white",
+      "title_box": "white",
+      "title_font": "BebasNeue-Regular.ttf"
+    },
+    "poppins_ocean": {
+      "font": "Poppins ExtraBold",
+      "size": 14,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#00C6FF",
+      "title_box_to": "#0072FF",
+      "title_font": "Poppins-ExtraBold.ttf"
+    },
+    "bangers_pop": {
+      "font": "Bangers",
+      "size": 19,
+      "primary": "&H0000F0FF",
+      "outline_colour": "&H00000000",
+      "outline": 4,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#E5195A",
+      "title_font": "Bangers-Regular.ttf"
+    },
+    "luckiest_sun": {
+      "font": "Luckiest Guy",
+      "size": 16,
+      "primary": "&H00FFFFFF",
+      "outline_colour": "&H00000000",
+      "outline": 5,
+      "margin_v": 60,
+      "title_colour": "white",
+      "bottom_colour": "white",
+      "title_box": "#FF512F",
+      "title_box_to": "#DD2476",
+      "title_font": "LuckiestGuy-Regular.ttf"
+    }
+  },
+  "layouts": {
+    "tomo": {
+      "type": "split",
+      "cam_crop": "crop=580:330:1340:470",
+      "cam_height": 620,
+      "game_crop": "crop=897:1080:440:0"
+    },
+    "kai": {
+      "type": "split",
+      "cam_crop": "crop=300:220:45:350",
+      "cam_height": 790,
+      "game_crop": "crop=1032:1080:440:0"
+    },
+    "kai_p1": {
+      "type": "split",
+      "cam_crop": "crop=300:220:45:432",
+      "cam_height": 790,
+      "game_crop": "crop=1032:1080:440:0"
+    },
+    "kai_face": {
+      "type": "face",
+      "cam_crop": "crop=608:1080:600:0"
+    },
+    "kai_face_p1": {
+      "type": "face",
+      "cam_crop": "crop=608:1080:656:0"
+    },
+    "kai_face_right": {
+      "type": "face",
+      "cam_crop": "crop=608:1080:860:0"
+    },
+    "speed": {
+      "type": "fullframe",
+      "cam_crop": "crop=388:240:0:461",
+      "cam_height": 460,
+      "game_crop": "crop=608:1080:656:0",
+      "big_width": 820
+    },
+    "speed_split": {
+      "type": "split",
+      "cam_crop": "crop=388:240:0:461",
+      "cam_height": 620,
+      "game_crop": "crop=897:1080:440:0",
+      "title_y": 30
+    }
+  },
+  "creators": {
+    "tomo": {
+      "youtube": [
+        "gta6",
+        "gtavi",
+        "gta6gameplay",
+        "rockstargames",
+        "gaming",
+        "gamingclips",
+        "funnymoments"
+      ],
+      "facebook": [
+        "gta6",
+        "gtavi",
+        "gaming",
+        "fyp"
+      ],
+      "caption": "default",
+      "layout": "tomo"
+    },
+    "kai": {
+      "youtube": [
+        "KaiCenat",
+        "kaicenatclips",
+        "kaicenatgta6",
+        "gta6",
+        "gtavi",
+        "gta6gameplay",
+        "kaicenatstream",
+        "streamer",
+        "streamerclips",
+        "twitch",
+        "twitchclips",
+        "gaming",
+        "gamingclips",
+        "funnymoments"
+      ],
+      "facebook": [
+        "KaiCenat",
+        "kaicenatclips",
+        "gta6",
+        "gaming",
+        "fyp"
+      ],
+      "caption": "default",
+      "layout": "kai"
+    },
+    "speed": {
+      "youtube": [
+        "ishowspeed",
+        "speed",
+        "speedclips",
+        "gta6",
+        "gtavi",
+        "gta6gameplay",
+        "rockstargames",
+        "gaming",
+        "gamingclips",
+        "funnymoments"
+      ],
+      "facebook": [
+        "ishowspeed",
+        "speedclips",
+        "gta6",
+        "gaming",
+        "fyp"
+      ],
+      "caption": "speed",
+      "layout": "speed",
+      "bottom_line": "follow for daily GTA 6 clips"
+    }
+  }
+}
