@@ -1,0 +1,9 @@
+# Python 3.11 or newer. Also needed on the PATH or at the paths named in scripts/: ffmpeg, ffprobe, yt-dlp
+google-api-python-client>=2.200
+google-auth-oauthlib>=1.5
+google-auth-httplib2>=0.4
+requests>=2.32
+numpy>=1.26
+opencv-python-headless>=4.11
+# transcription for the moment scan and the caption words (scan_windows.py, recover_words.py)
+faster-whisper
