@@ -1,0 +1,65 @@
+# --- secrets: never push (the tools read them from outside the project, this is a second safety net)
+client_secret*.json
+token*.json
+facebook.json
+instagram.json
+*.pem
+*.key
+.env
+.env.*
+
+# --- media and downloaded footage (many GB)
+footage/
+footage_test/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.srt
+
+# --- clips: only the shared look settings are tracked; the clip list, queues and renders are private state
+clips/*
+!clips/presets.json
+
+# --- private or large local material
+logs/
+brand/
+assets/
+backup_before_campaign_removal_*/
+
+# --- planning docs and notes stay local
+docs/
+
+# --- everything from Claude and other AI assistants (instructions, memory, settings, plugin output, browser scratch)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.claude/
+.claudeignore
+.mcp.json
+.hallmark/
+.impeccable/
+.superpowers/
+.ponytail/
+.playwright-mcp/
+.agents/
+.graphify/
+graphify-out/
+design-system/
+
+# --- tool caches
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
