@@ -1,0 +1,1649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip tool</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="Local control room for ViralPulse HQ: pick clips, set caption styles and layouts, and queue YouTube and Facebook uploads.">
+<style>
+/* Hallmark · shape: app screen, top tab bar over one working panel · genre: modern-minimal · theme: custom (brand: ViralPulse night) · job: operate · idea: "the clip tool is the control room of the same night-city brand as the public site: one panel at a time, thumbnails carry the colour" · vibe: "calm night control room, magenta marks the action"
+ * paper: oklch(15% 0.03 305) · accent: oklch(66% 0.26 354) · display: Bahnschrift (system) · body: Segoe UI Variable (system) · hero: none (app screen) · nav: top bar, wordmark left, six tabs with counts · footer: none · imagery: the user's own clip thumbnails · signature: the clip library as a wall of real 9:16 frames
+ * axes: dark/grotesk-sans/chromatic-magenta · posture: restrained · shape: app screen · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: S, a tool dashboard shell reads generic; let the thumbnail wall and the magenta action carry it, no decoration added */
+:root {
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
+  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 0.95rem; --text-lg: 1.15rem; --text-xl: 1.45rem; --text-2xl: 1.9rem;
+  --dur-micro: 120ms; --dur-short: 220ms; --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --color-paper: oklch(22% 0.1 310); --color-paper-2: oklch(26% 0.09 315); --color-paper-3: oklch(32% 0.1 320);
+  --color-field: oklch(21% 0.08 310);
+  --color-ink: oklch(97% 0.01 350); --color-ink-2: oklch(90% 0.025 350); --color-muted: oklch(80% 0.04 350);
+  --color-rule: oklch(38% 0.08 315); --color-edge: oklch(52% 0.09 315);
+  --color-accent: oklch(68% 0.2 354); --color-accent-hover: oklch(74% 0.18 354); --color-accent-ink: oklch(14% 0.03 305);
+  --color-accent-2: oklch(79% 0.16 55); --color-accent-2-hover: oklch(84% 0.14 55);
+  --grad-accent: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+  --grad-accent-hover: linear-gradient(135deg, var(--color-accent-hover), var(--color-accent-2-hover));
+  --grad-glow: linear-gradient(135deg, oklch(24% 0.11 280) 0%, oklch(24% 0.14 322) 32%, oklch(28% 0.09 10) 66%, oklch(30% 0.075 70) 100%);
+  --grad-side: linear-gradient(180deg, oklch(26% 0.12 285), oklch(24% 0.13 320) 45%, oklch(27% 0.09 15) 80%, oklch(28% 0.07 65));
+  --grad-current: linear-gradient(90deg, color-mix(in oklab, var(--color-accent) 45%, var(--color-paper-3)), color-mix(in oklab, var(--color-accent-2) 22%, var(--color-paper-3)));
+  --color-focus: oklch(82% 0.13 215);
+  --color-ok: oklch(80% 0.13 200); --color-ok-bg: oklch(25% 0.06 205);
+  --color-warn: oklch(82% 0.13 75); --color-warn-bg: oklch(27% 0.06 75);
+  --color-bad: oklch(78% 0.15 25); --color-bad-bg: oklch(26% 0.07 20);
+  --color-media: oklch(12% 0.03 305); --color-media-2: oklch(30% 0.05 303); --color-media-ink: oklch(98% 0.01 310);
+  --color-tomo: oklch(78% 0.11 200); --color-kai: oklch(76% 0.13 300); --color-speed: oklch(72% 0.16 354);
+  --font-display: Bahnschrift, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --radius-card: 8px; --radius-ctl: 6px; --radius-pill: 999px; --rule-hair: 1px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { scrollbar-color: var(--color-edge) var(--color-paper); }
+::selection { background: color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-ink); }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--grad-glow), var(--color-paper); background-attachment: fixed; color: var(--color-ink); font: var(--text-md)/1.5 var(--font-body); caret-color: var(--color-accent); }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: 0; margin: 0; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+h1 { font-size: var(--text-lg); }
+h2 { font-size: var(--text-xl); line-height: 1.15; }
+h3 { font-size: var(--text-lg); margin-bottom: var(--space-md); }
+
+.shell { min-height: 100dvh; }
+.side { position: fixed; inset: 0 auto 0 0; width: 15rem; z-index: 30; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-lg); padding: var(--space-lg) var(--space-sm); background: var(--grad-side); border-right: var(--rule-hair) solid var(--color-rule); }
+.side-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-sm); padding-inline: var(--space-sm); }
+.side nav { display: flex; flex-direction: column; gap: var(--space-md); }
+.nav-group { display: flex; flex-direction: column; gap: var(--space-3xs); }
+.nav-title { font-size: var(--text-xs); color: var(--color-muted); padding: 0 var(--space-sm) var(--space-2xs); }
+.side a { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-ctl); color: var(--color-ink-2); text-decoration: none; border-left: 2px solid transparent; transition: background-color var(--dur-short) var(--ease-out); }
+.side a:hover { background: var(--color-paper-3); }
+.side a[aria-current] { color: var(--color-ink); background: var(--grad-current); border-left-color: var(--color-accent); }
+.side .alerts { margin-top: auto; font-size: var(--text-sm); background: none; border-color: transparent; color: var(--color-muted); text-align: left; }
+.topbar, .scrim, .menu-close { display: none; }
+.main-col { min-width: 0; margin-left: 15rem; }
+.count { font-size: var(--text-xs); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+main { max-width: 90rem; margin-inline: auto; padding: var(--space-lg) var(--space-lg) var(--space-2xl); display: flex; flex-direction: column; gap: var(--space-lg); min-width: 0; }
+
+.panel { padding-top: var(--space-md); }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--space-sm) var(--space-lg); margin-bottom: var(--space-lg); }
+.panel-head p { margin: 0; color: var(--color-muted); max-width: 60ch; margin-left: auto; }
+.panel-head a { color: var(--color-ink-2); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 26rem); gap: var(--space-xl); align-items: start; }
+.split > div + div { border-left: var(--rule-hair) solid var(--color-rule); padding-left: var(--space-xl); }
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: var(--space-sm) var(--space-sm); border-bottom: var(--rule-hair) solid var(--color-rule); vertical-align: middle; }
+th { color: var(--color-muted); font-weight: 600; font-size: var(--text-sm); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { white-space: nowrap; }
+td.empty { color: var(--color-muted); padding-block: var(--space-lg); }
+
+label { display: flex; flex-direction: column; gap: var(--space-xs); font-size: var(--text-sm); color: var(--color-ink-2); }
+input, select, textarea, button { font: inherit; color: var(--color-ink); max-width: 100%; }
+input, select, textarea { background: var(--color-field); border: var(--rule-hair) solid var(--color-edge); border-radius: var(--radius-ctl); padding: var(--space-xs) var(--space-sm); min-height: 2.5rem; width: 100%; transition: border-color var(--dur-micro) var(--ease-out); }
+input:hover, select:hover, textarea:hover { border-color: var(--color-muted); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; border-color: var(--color-focus); }
+td input, td select { width: auto; }
+input::placeholder, textarea::placeholder { color: var(--color-muted); opacity: .8; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--space-lg) var(--space-lg); margin-bottom: var(--space-lg); }
+.fields .wide { grid-column: 1 / -1; }
+.position-row { display: grid; grid-template-columns: minmax(0, 1fr) 6rem; gap: var(--space-xs); }
+.frame-fields { grid-template-columns: 8rem auto; align-items: end; }
+.hint { color: var(--color-muted); font-size: var(--text-sm); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-md); align-items: center; margin-top: var(--space-lg); padding-top: var(--space-md); border-top: var(--rule-hair) solid var(--color-rule); }
+.check { flex-direction: row; align-items: center; gap: var(--space-xs); color: var(--color-ink); }
+.check input { width: 1.25rem; height: 1.25rem; min-height: 0; flex: none; }
+
+button { cursor: pointer; background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-edge); border-radius: var(--radius-ctl); padding: var(--space-xs) var(--space-md); min-height: 2.5rem; transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out); }
+button:hover:not(:disabled) { background: var(--color-paper-3); border-color: var(--color-muted); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button.primary { background: var(--grad-accent); border-color: transparent; color: var(--color-accent-ink); font-weight: 700; }
+button.primary:hover:not(:disabled) { background: var(--grad-accent-hover); border-color: transparent; }
+button:disabled, button.primary:disabled { background: var(--color-paper); border-color: var(--color-rule); color: var(--color-muted); cursor: not-allowed; }
+.slots { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; margin: var(--space-2xs) 0 var(--space-xs); }
+.slots button { padding: var(--space-2xs) var(--space-sm); min-height: 2rem; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+
+.pill { display: inline-block; padding: var(--space-3xs) var(--space-sm); border-radius: var(--radius-pill); font-size: var(--text-xs); background: var(--color-paper-3); color: var(--color-ink-2); overflow-wrap: anywhere; }
+.pill.ok { background: var(--color-ok-bg); color: var(--color-ok); }
+.pill.warn { background: var(--color-warn-bg); color: var(--color-warn); }
+.pill.bad { background: var(--color-bad-bg); color: var(--color-bad); }
+.dot { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: var(--space-xs); background: var(--color-muted); }
+
+.banner { background: var(--color-warn-bg); color: var(--color-warn); border-radius: var(--radius-card); padding: var(--space-sm) var(--space-md); }
+.problem { color: var(--color-bad); margin: var(--space-xs) 0 0; }
+.note { color: var(--color-muted); margin-top: var(--space-xs); }
+.captions summary { cursor: pointer; margin-block: var(--space-xs); }
+.caption-list { max-height: 14rem; overflow-y: auto; font-size: var(--text-sm); white-space: pre-wrap; margin-block: var(--space-xs); }
+.fix-row { font-size: var(--text-sm); margin-top: var(--space-xs); }
+.crop-preview { position: relative; max-width: 24rem; }
+.crop-preview img { display: block; width: 100%; }
+.crop-rect { position: absolute; box-sizing: border-box; border: 2px solid var(--color-focus); pointer-events: none; }
+.clip-video { display: block; width: 100%; max-width: 20rem; max-height: 32rem; background: var(--color-media); }
+.caption-row { display: grid; grid-template-columns: minmax(0, 1fr) 5rem 5rem auto; gap: var(--space-xs); align-items: center; margin-bottom: var(--space-xs); }
+.caption-row input { min-width: 0; }
+.caption-jump { text-align: left; background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+.caption-jump:disabled { cursor: default; }
+
+.viewfinder { position: relative; margin-top: var(--space-md); aspect-ratio: 16 / 9; max-width: 40rem; background: var(--color-media); border-radius: var(--radius-ctl); display: grid; place-items: center; overflow: hidden; }
+.viewfinder::before, .viewfinder::after { content: ""; position: absolute; width: 1.5rem; height: 1.5rem; pointer-events: none; z-index: 1; border: 0 solid var(--color-muted); }
+.viewfinder::before { top: var(--space-sm); left: var(--space-sm); border-width: 3px 0 0 3px; }
+.viewfinder::after { bottom: var(--space-sm); right: var(--space-sm); border-width: 0 3px 3px 0; }
+.viewfinder img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.viewfinder p { color: var(--color-media-ink); opacity: .75; margin: 0; padding: var(--space-md) var(--space-xl); text-align: center; }
+
+.sample { margin-top: var(--space-xs); padding: var(--space-lg) var(--space-md); text-align: center; background: var(--color-media); border-radius: var(--radius-ctl); font-weight: 700; }
+input[type=color] { padding: var(--space-3xs); height: 2.25rem; min-width: 4rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; margin-bottom: var(--space-lg); }
+.toolbar input[type=search] { flex: 1 1 14rem; width: auto; }
+.toolbar select { width: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.chip { border-radius: var(--radius-pill); padding: var(--space-2xs) var(--space-md); }
+.chip.active { background: linear-gradient(var(--color-paper-3), var(--color-paper-3)) padding-box, var(--grad-accent) border-box; color: var(--color-ink); border-color: transparent; font-weight: 600; }
+.chip.priority { font-weight: 600; }
+
+.card.priority { color: var(--color-ink); }
+.library-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); align-items: start; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: var(--space-md); }
+.grid > p { grid-column: 1 / -1; color: var(--color-muted); margin: var(--space-md) 0; }
+.card { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); padding: var(--space-xs) var(--space-xs) var(--space-sm); text-align: left; color: var(--color-ink); background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); }
+.card.rejected { opacity: .55; }
+.style-actions { margin-top: var(--space-xs); padding-top: 0; border-top: 0; }
+.style-actions input { flex: 1 1 14rem; width: auto; }
+.review-row { margin-top: var(--space-sm); padding-top: 0; border-top: 0; }
+.card.selected { border-color: transparent; background: linear-gradient(var(--color-paper-3), var(--color-paper-3)) padding-box, var(--grad-accent) border-box; color: var(--color-ink); }
+.poster { position: relative; aspect-ratio: 9 / 16; border-radius: var(--radius-ctl); overflow: hidden; display: grid; place-items: center; background: var(--color-media); }
+.poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.poster-empty { color: var(--color-media-ink); opacity: .8; font-size: var(--text-sm); }
+.poster-pill { margin-block: var(--space-2xs) var(--space-3xs); }
+.card-name { font-size: var(--text-sm); font-weight: 600; overflow-wrap: anywhere; line-height: 1.3; }
+.card .poster { align-self: stretch; }
+.card-hook { font-size: var(--text-xs); color: var(--color-muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.detail { max-width: 72rem; }
+.detail h3 { margin-bottom: var(--space-2xs); overflow-wrap: anywhere; }
+.detail .fields { grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); margin-top: var(--space-sm); }
+.detail-empty { color: var(--color-muted); margin: 0; }
+.pick .label { display: block; font-size: var(--text-sm); color: var(--color-muted); margin-bottom: var(--space-xs); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: var(--space-sm); }
+.tile { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); min-width: 0; padding: var(--space-xs); border-radius: var(--radius-card); }
+.tile[aria-checked=true] { border-color: transparent; background: linear-gradient(var(--color-paper-3), var(--color-paper-3)) padding-box, var(--grad-accent) border-box; }
+.tile:has(.tile-new) { border-style: dashed; }
+.actions + .fields { margin-top: var(--space-lg); }
+.group h4 { margin: var(--space-sm) 0 0; font-family: var(--font-display); font-size: var(--text-md); font-weight: 600; color: var(--color-ink-2); }
+.tile-name { font-size: var(--text-xs); overflow-wrap: anywhere; text-align: center; }
+.tile-sample { width: 100%; height: 3.6rem; border-radius: var(--radius-ctl); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2xs); background: var(--color-media); overflow: hidden; line-height: 1.1; font-weight: 700; }
+.tile-sample small { font-size: .6rem; font-weight: 700; }
+.phone { position: relative; width: 3rem; aspect-ratio: 9 / 16; border-radius: var(--space-2xs); overflow: hidden; display: flex; flex-direction: column; background: var(--color-media-2); }
+.phone span { display: block; }
+.phone .cam { background: var(--color-tomo); }
+.phone .game { flex: 1; background: var(--color-edge); }
+.phone .cam-box { position: absolute; left: 8%; top: 8%; background: var(--color-tomo); border: 1px solid var(--color-media-ink); }
+.tile-new { width: 100%; height: 3.6rem; display: grid; place-items: center; font-size: var(--text-2xl); color: var(--color-muted); }
+.source { margin-top: var(--space-xl); }
+.source-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-bottom: var(--space-md); }
+.source-head h3 { margin: 0; flex: 1 1 16rem; }
+.cands { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: var(--space-md); }
+.cand { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); background: var(--color-paper-2); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); color: var(--color-ink); }
+.cand audio { width: 100%; }
+.cand-text { margin: 0; color: var(--color-ink-2); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.cand .fields { margin: 0; gap: var(--space-sm); }
+.cand .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+details { margin-top: var(--space-md); }
+summary { cursor: pointer; color: var(--color-muted); }
+pre { background: var(--color-field); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-ctl); padding: var(--space-sm); max-height: 14rem; overflow: auto; font-size: var(--text-xs); margin: var(--space-xs) 0 0; white-space: pre-wrap; }
+
+.tasks { position: fixed; left: var(--space-md); right: var(--space-md); bottom: var(--space-md); margin-left: auto; max-width: 22rem; z-index: 20; display: flex; flex-direction: column; gap: var(--space-xs); }
+.task { background: var(--color-paper-3); border: var(--rule-hair) solid var(--color-edge); border-radius: var(--radius-card); padding: var(--space-sm) var(--space-md); display: flex; flex-direction: column; gap: var(--space-xs); }
+.task.ok { border-color: var(--color-ok); }
+.task.bad { border-color: var(--color-bad); }
+.task-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-sm); }
+.offline { position: fixed; left: var(--space-md); right: var(--space-md); top: var(--space-md); z-index: 50; max-width: 36rem; margin-inline: auto; box-shadow: 0 0 0 1px var(--color-warn); }
+td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.task-row button { min-height: 2rem; padding: var(--space-3xs) var(--space-xs); }
+.task progress { width: 100%; height: 0.4rem; accent-color: var(--color-accent); }
+.task progress { appearance: none; border: 0; border-radius: var(--radius-pill); background: var(--color-paper); overflow: hidden; }
+.task progress::-webkit-progress-bar { background: var(--color-paper); }
+.task progress::-webkit-progress-value { background: var(--grad-accent); }
+.task progress::-moz-progress-bar { background: var(--grad-accent); }
+@media (max-width: 80rem) {
+  .library-layout, .split { grid-template-columns: minmax(0, 1fr); }
+  .split > div + div { border-left: 0; padding-left: 0; border-top: var(--rule-hair) solid var(--color-rule); padding-top: var(--space-lg); }
+}
+@media (max-width: 60rem) {
+  .main-col { margin-left: 0; }
+  .side { width: min(18rem, 85%); transform: translateX(-100%); transition: transform var(--dur-short) var(--ease-out); }
+  .side.open { transform: none; }
+  .scrim { position: fixed; inset: 0; z-index: 25; background: color-mix(in oklab, var(--color-media) 70%, transparent); }
+  .side.open ~ .scrim { display: block; }
+  .menu-close { display: inline-flex; }
+  .topbar { display: flex; position: sticky; top: 0; z-index: 10; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: var(--color-paper); border-bottom: var(--rule-hair) solid var(--color-rule); }
+}
+@media (max-width: 62rem) {
+  main { padding: var(--space-md) var(--space-md) var(--space-xl); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+<div id="offline" class="banner offline" role="alert" hidden></div>
+<header class="side" id="side">
+  <div class="side-top"><h1>ViralPulseHQ clip tool</h1><button type="button" class="menu-close" id="menu-close" aria-label="Close the menu">Close</button></div>
+  <nav aria-label="Sections">
+    <div class="nav-group"><span class="nav-title">Make</span>
+      <a href="#sources">Sources <span class="count" id="c-sources"></span></a>
+      <a href="#new-clip">New clip</a></div>
+    <div class="nav-group"><span class="nav-title">Clips</span>
+      <a href="#library">Library <span class="count" id="c-library"></span></a>
+      <a href="#editor">Editor</a></div>
+    <div class="nav-group"><span class="nav-title">Look</span>
+      <a href="#styles">Styles</a>
+      <a href="#creators">Creators <span class="count" id="c-creators"></span></a></div>
+    <div class="nav-group"><span class="nav-title">Post</span>
+      <a href="#youtube">YouTube <span class="count" id="c-youtube"></span></a>
+      <a href="#facebook">Facebook <span class="count" id="c-facebook"></span></a>
+      <a href="#instagram">Instagram <span class="count" id="c-instagram"></span></a></div>
+  </nav>
+  <button id="alerts-button" class="alerts" type="button" title="Show a desktop alert when a task finishes while this tab is in the background">Desktop alerts: off</button>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="main-col">
+  <div class="topbar"><button type="button" id="menu-open" aria-controls="side">Menu</button><strong id="page-name"></strong></div>
+  <div class="tasks" id="tasks" role="status" aria-live="polite"></div>
+  <main>
+    <div id="login-banner" class="banner" role="status" hidden>The Google login has expired. Press Upload queue and the login window opens on this computer.</div>
+
+    <section class="panel" id="library">
+      <div class="panel-head"><h2>Library</h2><p id="lib-count"></p></div>
+      <div class="toolbar">
+        <input id="lib-search" type="search" placeholder="Search name, title or hook" aria-label="Search clips">
+        <div class="chips" id="lib-streamers" role="group" aria-label="Filter by streamer"></div>
+        <select id="lib-review" aria-label="Filter by review">
+          <option value="">Any review</option><option value="waiting">Waiting for review</option>
+          <option value="approved">Approved</option><option value="rejected">Rejected</option>
+        </select>
+        <select id="lib-status" aria-label="Filter by status">
+          <option value="">Any status</option><option value="not rendered">Not rendered</option>
+          <option value="rendered">Rendered</option><option value="uploaded">Uploaded</option>
+        </select>
+        <select id="lib-sort" aria-label="Sort clips">
+          <option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Name</option>
+        </select>
+      </div>
+      <div class="library-layout">
+        <div>
+          <div class="grid" id="lib-grid"></div>
+          <div class="actions"><button id="lib-more" hidden>Show more</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="editor">
+      <div class="panel-head"><h2>Clip editor</h2><p><a href="#library">Back to the library</a></p></div>
+      <aside class="detail" id="lib-detail" aria-live="polite"></aside>
+    </section>
+
+    <section class="panel" id="sources">
+      <div class="panel-head"><h2>Sources</h2><p>Paste a YouTube video or stream. The tool finds loud moments and their words; you choose which to cut.</p></div>
+      <div class="fields">
+        <label class="wide">YouTube link <input id="src-url" placeholder="https://www.youtube.com/watch?v=..."></label>
+        <label>Creator <select id="src-creator"></select></label>
+      </div>
+      <div class="actions"><button id="src-add" class="primary" type="button">Add source</button></div>
+      <div id="src-problems"></div>
+      <div id="src-list"></div>
+    </section>
+
+    <section class="panel" id="new-clip">
+      <div class="panel-head"><h2>New clip</h2><p>Pick a source, mark the seconds to keep.</p></div>
+      <div class="split">
+        <div>
+          <div class="fields">
+            <label>Name <input id="n-name" placeholder="tomo_6_example"></label>
+            <label>Creator <select id="n-streamer"></select></label>
+            <label>Source pick <select id="n-pick"></select></label>
+            <label>Segments, in seconds <input id="n-segments" placeholder="5-30, 40-60"></label>
+            <label>Title on the clip <input id="n-title"><span id="n-count" class="hint">0/28</span></label>
+            <div class="wide pick"><span class="label">Caption style</span><select id="n-caption" hidden></select>
+              <div class="tiles" id="n-caption-tiles" role="radiogroup" aria-label="Caption style"></div></div>
+            <div class="wide pick"><span class="label">Layout</span><select id="n-layout" hidden></select>
+              <div class="tiles" id="n-layout-tiles" role="radiogroup" aria-label="Layout"></div></div>
+            <label>Camera crop, optional <input id="n-cam" placeholder="crop=300:220:45:432"></label>
+            <label class="wide">Hook: the YouTube title and the first line on Facebook <input id="n-hook"><span id="n-hook-count" class="hint">0/100</span></label>
+            <label>Body, one short line <input id="n-body"></label>
+            <label>Extra tags <input id="n-tags" placeholder="gta6money, gta6atm"></label>
+          </div>
+          <div class="actions"><button id="n-add" class="primary">Add clip</button></div>
+          <div id="new-problems"></div>
+        </div>
+        <div>
+          <h3>Frame preview</h3>
+          <div class="fields frame-fields">
+            <label>At second <input id="n-frame-time" type="number" min="0" value="5"></label>
+            <div><button id="n-frame">Show frame</button></div>
+          </div>
+          <div class="viewfinder" id="frame-box"><p>Choose a source and a second, then show the frame to read the camera crop.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="styles">
+      <div class="panel-head"><h2>Styles</h2><p>Make your own caption style or layout, then pick it on any clip.</p></div>
+      <div class="split">
+        <div>
+          <h3>Caption style</h3>
+          <div class="fields">
+            <div class="wide pick"><span class="label">Style</span><select id="cs-pick" hidden></select>
+              <div class="tiles" id="cs-tiles" role="radiogroup" aria-label="Caption style to edit"></div></div>
+            <label>Name for a new style <input id="cs-name" placeholder="loud_yellow"></label>
+            <div class="wide group"><h4>Caption: the spoken words</h4></div>
+            <label>Caption font <select id="cs-font"></select></label>
+            <label>Size <input id="cs-size" type="number" min="5" max="60" value="13"></label>
+            <label>Outline width <input id="cs-outline" type="number" min="0" max="10" value="3"></label>
+            <label>Height from the bottom <input id="cs-margin" type="number" min="0" max="600" value="30"></label>
+            <label>Caption colour <input id="cs-primary" type="color" value="#ffffff"></label>
+            <label>Caption outline <input id="cs-outline-colour" type="color" value="#000000"></label>
+          </div>
+          <div id="cs-sample" class="sample">Sample caption</div>
+          <div class="actions"><button id="cs-save" class="primary">Save caption style</button></div>
+          <div class="fields">
+            <div class="wide group"><h4>Title: the line at the top, and the bottom line</h4></div>
+            <label>Title font <select id="cs-title-font"></select></label>
+            <label>Title colour <input id="cs-title-colour" type="color" value="#ffffff"></label>
+            <label>Bottom line colour <input id="cs-bottom-colour" type="color" value="#ffff00"></label>
+            <label class="check"><input id="cs-box-on" type="checkbox"> Highlight box behind the title</label>
+            <label>Box colour <input id="cs-box" type="color" value="#ffd400"></label>
+            <label class="check"><input id="cs-box2-on" type="checkbox"> Gradient box</label>
+            <label>Gradient end colour <input id="cs-box2" type="color" value="#dd2476"></label>
+            <div class="wide pick"><span class="label">Quick colours: click one to fill the colour you touched last</span><div class="chips" id="cs-swatches"></div></div>
+          </div>
+          <div id="cs-title-sample" class="sample">SAMPLE TITLE</div>
+          <div class="actions"><button id="cs-title-save" class="primary">Save title style</button><span id="cs-used" class="hint"></span></div>
+          <div id="cs-problems"></div>
+        </div>
+        <div>
+          <h3>Layout</h3>
+          <div class="fields">
+            <div class="wide pick"><span class="label">Layout</span><select id="ls-pick" hidden></select>
+              <div class="tiles" id="ls-tiles" role="radiogroup" aria-label="Layout to edit"></div></div>
+            <label class="wide">Name for a new layout <input id="ls-name" placeholder="kai_wide"></label>
+            <label class="wide">Type
+              <select id="ls-type">
+                <option value="split">split: camera on top, game below</option>
+                <option value="face">face: camera fills the frame</option>
+                <option value="fullframe">fullframe: game fills the frame, camera in a box</option>
+              </select></label>
+            <label class="wide">Camera crop <input id="ls-cam-crop" placeholder="crop=580:330:1340:470"></label>
+            <label class="wide" data-for="split fullframe">Game crop <input id="ls-game-crop" placeholder="crop=897:1080:440:0"></label>
+            <label data-for="split fullframe">Camera height <input id="ls-cam-height" type="number" min="100" max="1700"></label>
+            <label data-for="fullframe">Big box width <input id="ls-big-width" type="number" min="100" max="1080"></label>
+          </div>
+          <div class="hint">Read the crop numbers from the frame preview in New clip.</div>
+          <div class="actions"><button id="ls-save" class="primary">Save layout</button><span id="ls-used" class="hint"></span></div>
+          <div id="ls-problems"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="creators">
+      <div class="panel-head"><h2>Creators</h2><p>Whose videos you clip, with their hashtags and default look.</p></div>
+      <div class="fields">
+        <div class="wide pick"><span class="label">Creator</span><select id="cr-pick" hidden></select>
+          <div class="chips" id="cr-chips" role="radiogroup" aria-label="Creator to edit"></div></div>
+        <label>Name, also the folder in clips/ <input id="cr-name" placeholder="mrbeast"></label>
+        <label class="wide">YouTube hashtags <textarea id="cr-youtube" rows="2" placeholder="gta6, gaming, gamingclips"></textarea></label>
+        <label class="wide">Facebook hashtags, shorter <textarea id="cr-facebook" rows="2" placeholder="gta6, gaming, fyp"></textarea></label>
+        <div class="wide pick"><span class="label">Default caption style</span><select id="cr-caption" hidden></select>
+          <div class="tiles" id="cr-caption-tiles" role="radiogroup" aria-label="Default caption style"></div></div>
+        <div class="wide pick"><span class="label">Default layout</span><select id="cr-layout" hidden></select>
+          <div class="tiles" id="cr-layout-tiles" role="radiogroup" aria-label="Default layout"></div></div>
+      </div>
+      <div class="hint">A normal video with no stream camera works with a face-type layout. Make that layout in Styles first.</div>
+      <div class="actions"><button id="cr-save" class="primary">Save creator</button><span id="cr-used" class="hint"></span></div>
+      <div id="cr-problems"></div>
+    </section>
+
+    <section class="panel" id="youtube">
+      <div class="panel-head"><h2>YouTube queue</h2><p>Uploaded as private, public at the set time.</p></div>
+      <div class="split">
+        <div>
+          <div class="scroll"><table id="queue"><thead><tr><th>Title</th><th>Publish time</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          <div class="actions">
+            <label class="check"><input id="dry-run" type="checkbox" checked> Dry run: check only, upload nothing</label>
+            <button id="upload" class="primary">Upload queue</button>
+            <span id="upload-state" class="hint"></span>
+          </div>
+          <details><summary>Upload log</summary><pre id="log">(no log yet)</pre></details>
+        </div>
+        <div>
+          <h3>Add to queue</h3>
+          <div class="fields">
+            <label class="wide">Clip file <select id="q-file"></select></label>
+            <div class="wide"><button id="q-fill">Fill text from clip</button><div id="q-note" class="note"></div></div>
+            <label class="wide">Title <input id="q-title"></label>
+            <label class="wide">Description <textarea id="q-description" rows="3"></textarea></label>
+            <label class="wide">Publish time, Dhaka (+06:00) <input id="q-time" type="datetime-local"></label>
+          </div>
+          <div class="hint">Free slots</div>
+          <div class="slots" id="slots"></div>
+          <div id="day-warning" class="problem"></div>
+          <div class="actions"><button id="q-add" class="primary">Add to queue</button></div>
+          <div id="queue-problems"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="facebook">
+      <div class="panel-head"><h2>Facebook queue</h2><p>Reels scheduled through the Page API.</p></div>
+      <div id="fb-banner" class="banner" role="status" hidden></div>
+      <div class="split">
+        <div>
+          <div class="scroll"><table id="fb-queue"><thead><tr><th>Caption</th><th>Publish time</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          <div class="actions">
+            <label class="check"><input id="fb-dry-run" type="checkbox" checked> Dry run: check only, upload nothing</label>
+            <button id="fb-upload" class="primary">Upload to Facebook</button>
+            <span id="fb-upload-state" class="hint"></span>
+          </div>
+          <details><summary>Upload log</summary><pre id="fb-log">(no log yet)</pre></details>
+        </div>
+        <div>
+          <h3>Add to Facebook queue</h3>
+          <div class="fields">
+            <label class="wide">Clip file <select id="fb-file"></select></label>
+            <div class="wide"><button id="fb-fill">Fill text from clip</button><div id="fb-note" class="note"></div></div>
+            <label class="wide">Caption <textarea id="fb-caption" rows="5"></textarea></label>
+            <label class="wide">Publish time, Dhaka (+06:00) <input id="fb-time" type="datetime-local"></label>
+          </div>
+          <div class="hint">Free slots</div>
+          <div class="slots" id="fb-slots"></div>
+          <div id="fb-day-warning" class="problem"></div>
+          <div class="actions"><button id="fb-add" class="primary">Add to queue</button></div>
+          <div id="fb-problems"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="instagram">
+      <div class="panel-head"><h2>Instagram queue</h2><p>Reels are posted by <code>instagram_schedule.py --watch</code> (this PC on, a US VPN).</p></div>
+      <div class="split">
+        <div class="scroll"><table id="ig-queue"><thead><tr><th>Clip</th><th>Publish time</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        <div>
+          <h3>Add to Instagram queue</h3>
+          <div class="fields">
+            <label class="wide">Clip file <select id="ig-file"></select></label>
+            <div class="wide"><button id="ig-fill">Fill text from clip</button><div id="ig-note" class="note"></div></div>
+            <label class="wide">Caption <textarea id="ig-caption" rows="5"></textarea></label>
+            <label class="wide">Publish time, Dhaka (+06:00) <input id="ig-time" type="datetime-local"></label>
+          </div>
+          <div class="hint">Free slots</div>
+          <div class="slots" id="ig-slots"></div>
+          <div class="hint">A lighter 30 fps copy (ig_ name) is made for Instagram, because big files hung at Meta. It takes about a minute.</div>
+          <div class="actions"><button id="ig-add" class="primary">Add to queue</button><span id="ig-state" class="hint"></span></div>
+          <div id="ig-problems"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+
+<script>
+// the token comes from the link. It stays in the address: the server also needs it to serve the page itself, so reloading works only with it
+const TOKEN = new URLSearchParams(location.search).get("token") || "";
+let state = null;
+let lastState = "";
+
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  // aria-* names are attributes, not properties: assigning them would be ignored by screen readers
+  for (const [key, value] of Object.entries(props)) {
+    if (key.startsWith("aria-")) node.setAttribute(key, value); else node[key] = value;
+  }
+  for (const child of [].concat(children)) node.append(child);
+  return node;
+}
+
+function pill(text, kind, title) {
+  return el("span", { className: "pill " + (kind || ""), textContent: text, title: title || "" });
+}
+// a long id would push the status column out of the table: show its last 6 characters, the whole id is the tooltip
+function idPill(label, id, kind) { return pill(`${label} …${String(id).slice(-6)}`, kind, String(id)); }
+
+async function api(path, body) {
+  const options = { headers: { "X-Token": TOKEN } };
+  if (body !== undefined) { options.method = "POST"; options.body = JSON.stringify(body); }
+  let response;
+  try { response = await fetch(path, options); }
+  catch { showOffline("The tool's server is not reachable. Your typing is kept; it reconnects by itself when the server is back."); return { status: 0, data: { problems: ["Server not reachable."], lines: [] } }; }
+  let data = {};
+  try { data = await response.json(); } catch { /* an empty or non-JSON reply is handled by the status below */ }
+  if (response.status === 403) showOffline("The server was restarted, so this page's link is out of date. Your typing is kept here; open the new link from server.log to continue.");
+  else showOffline("");
+  if (response.status !== 200 && !Array.isArray(data.problems)) data.problems = [data.error || `Server answered ${response.status}.`];
+  return { status: response.status, data };
+}
+
+function showOffline(text) {
+  const box = document.getElementById("offline");
+  box.textContent = text;
+  box.hidden = !text;
+}
+
+// A layout looks where its own streamer's camera sits, and is named after that streamer (tomo, kai_face, speed_split).
+// Given to another streamer's clip it would cut the game instead of the face, so that clip needs its own streamer's camera box.
+function cameraPlan(streamer, layoutName) {
+  const creators = state.presets.creators || {};
+  const own = ((creators[streamer] && state.presets.layouts[creators[streamer].layout]) || {}).cam_crop || "";
+  const owner = Object.keys(creators).find(name => layoutName === name || layoutName.startsWith(name + "_")) || "";
+  return { own, foreign: Boolean(own && owner && owner !== streamer) };
+}
+
+function showProblems(id, problems) {
+  const box = document.getElementById(id);
+  box.replaceChildren(...(problems || []).map(text => el("div", { className: "problem", textContent: text })));
+}
+
+// rebuilding a list must not change what the user already picked
+function options(select, values, chosen) {
+  const keep = chosen === undefined && values.includes(select.value) ? select.value : chosen;
+  select.replaceChildren(...values.map(value => el("option", { value, textContent: value, selected: value === keep })));
+}
+
+function emptyRow(columns, text) {
+  return el("tr", {}, el("td", { className: "empty", colSpan: columns, textContent: text }));
+}
+
+const KNOWN_COLOURS = { tomo: "var(--color-tomo)", kai: "var(--color-kai)", speed: "var(--color-speed)" };
+// the owner's priority creator: listed first everywhere and marked with the accent colour
+const PRIORITY_CREATOR = "speed";
+function priorityFirst(items, creatorOf = (item) => item) {
+  return [...items.filter((item) => creatorOf(item) === PRIORITY_CREATOR), ...items.filter((item) => creatorOf(item) !== PRIORITY_CREATOR)];
+}
+
+// a new creator gets a steady colour made from its name
+function creatorColour(name) {
+  if (KNOWN_COLOURS[name]) return KNOWN_COLOURS[name];
+  let hue = 0;
+  for (const character of name) hue = (hue * 31 + character.codePointAt(0)) % 360;
+  return `hsl(${hue} 55% 45%)`;
+}
+
+function creatorDot(name) {
+  return el("span", { className: "dot", style: `background: ${creatorColour(name)}` });
+}
+
+const PAGE_SIZE = 24;
+const view = { search: "", streamer: "", status: "", review: "", sort: "newest", shown: PAGE_SIZE, selected: "" };
+let detailKey = "";
+// the clip whose "Check the captions" panel is open, so a redraw after a saved fix keeps it open
+let captionsOpenFor = "";
+
+function clipState(clip) {
+  const file = `clips/${clip.streamer}/${clip.name}.mp4`;
+  const outcome = state.renders[clip.name] || "";
+  const rendered = state.rendered.includes(file);
+  // rendering again would overwrite the file that was uploaded
+  const posted = state.queue.some(entry => entry.video_id && entry.file === file)
+    || state.facebook_queue.some(entry => entry.status === "scheduled" && entry.file === file);
+  const failed = outcome.startsWith("failed"), running = outcome === "running";
+  const label = failed ? "failed" : running ? "rendering" : posted ? "uploaded" : rendered ? "rendered" : "not rendered";
+  return { file, outcome, rendered, posted, running, label };
+}
+
+// the owner's verdict on a generated clip; nothing shown while it waits for one
+function reviewPill(clip) {
+  return clip.review ? pill(clip.review, clip.review === "approved" ? "ok" : "bad") : null;
+}
+
+function statusPill(info) {
+  const kind = { failed: "bad", rendering: "warn", uploaded: "ok", rendered: "ok" }[info.label] || "";
+  const badge = pill(info.label, kind);
+  if (info.label === "failed") badge.title = info.outcome;
+  return badge;
+}
+
+function clipCard(clip) {
+  const info = clipState(clip);
+  const poster = el("div", { className: "poster", style: `background: linear-gradient(160deg, ${creatorColour(clip.streamer)}, var(--color-media))` });
+  if (info.rendered) {
+    const source = `/api/thumb?clip=${encodeURIComponent(clip.name)}&token=${encodeURIComponent(TOKEN)}&v=${encodeURIComponent(info.outcome)}`;
+    // one retry: the first load of a big library can lose a request while the pictures are still being made
+    const picture = el("img", { loading: "lazy", alt: "", src: source });
+    picture.onerror = () => {
+      if (picture.dataset.retried) return picture.remove();
+      picture.dataset.retried = "1";
+      setTimeout(() => { picture.src = source + "&retry=1"; }, 1500);
+    };
+    poster.append(picture);
+  } else {
+    poster.append(el("span", { className: "poster-empty", textContent: "Not rendered" }));
+  }
+  const card = el("button", { className: "card" + (clip.review === "rejected" ? " rejected" : "") + (view.selected === clip.name ? " selected" : "") + (clip.streamer === PRIORITY_CREATOR ? " priority" : ""), type: "button",
+    title: clip.title, onclick: () => selectClip(clip.name) }, [
+    poster, el("span", { className: "poster-pill" }, [statusPill(info), ...(reviewPill(clip) ? [" ", reviewPill(clip)] : [])]), el("div", { className: "card-name" }, [creatorDot(clip.streamer), clip.name]),
+    el("div", { className: "card-hook", textContent: clip.hook || clip.title })].concat(clip.cam_unverified ? [pill("check the camera", "warn")] : []));
+  card.setAttribute("aria-pressed", String(view.selected === clip.name));
+  return card;
+}
+
+function selectClip(name) {
+  view.selected = name;
+  renderLibrary();
+  // the editor is its own page: opening a clip from the library goes there, and the browser's back button returns
+  location.hash = "editor";
+}
+
+function visibleClips() {
+  const words = view.search.trim().toLowerCase();
+  const found = state.clips.filter(clip => (!view.streamer || clip.streamer === view.streamer)
+    && (!words || [clip.name, clip.title, clip.hook || ""].join(" ").toLowerCase().includes(words))
+    && (!view.status || clipState(clip).label === view.status)
+    && (!view.review || (view.review === "waiting" ? !clip.review : clip.review === view.review)));
+  // the list is kept in the order clips were added; the priority creator's clips come first in every sort
+  const ordered = view.sort === "name" ? found.sort((a, b) => a.name.localeCompare(b.name)) : view.sort === "newest" ? found.reverse() : found;
+  return priorityFirst(ordered, (clip) => clip.streamer);
+}
+
+function renderLibrary() {
+  document.getElementById("c-library").textContent = state.clips.length;
+  const streamers = priorityFirst([...new Set(state.clips.map(clip => clip.streamer))]);
+  document.getElementById("lib-streamers").replaceChildren(...["", ...streamers].map(streamer => {
+    const chip = el("button", { className: "chip" + (view.streamer === streamer ? " active" : "") + (streamer === PRIORITY_CREATOR ? " priority" : ""), type: "button",
+      textContent: streamer || "All", onclick: () => { view.streamer = streamer; view.shown = PAGE_SIZE; renderLibrary(); } });
+    chip.setAttribute("aria-pressed", String(view.streamer === streamer));
+    return chip;
+  }));
+  const found = visibleClips();
+  document.getElementById("lib-count").textContent = found.length === state.clips.length
+    ? `${state.clips.length} clips` : `${found.length} of ${state.clips.length} clips`;
+  document.getElementById("lib-grid").replaceChildren(...(found.length
+    ? found.slice(0, view.shown).map(clipCard)
+    : [el("p", { textContent: state.clips.length ? "No clip matches. Clear the search or the filters." : "No clips yet. Add one in New clip." })]));
+  const more = document.getElementById("lib-more");
+  more.hidden = found.length <= view.shown;
+  more.textContent = `Show more (${found.length - view.shown} left)`;
+  renderDetail();
+}
+
+function renderDetail() {
+  const detail = document.getElementById("lib-detail");
+  const clip = state.clips.find(candidate => candidate.name === view.selected);
+  if (!clip) {
+    if (detailKey === "none") return;
+    detailKey = "none";
+    detail.dataset.clip = "";
+    detail.replaceChildren(el("p", { className: "detail-empty", textContent: "No clip chosen yet. Open the Library and click a clip to edit its styles, hook and tags, render it or send it to a queue." }));
+    return;
+  }
+  const info = clipState(clip);
+  const key = JSON.stringify([clip, info, state.presets]);
+  if (key === detailKey) return;
+  // typing in the editor must not be wiped by a redraw; it is drawn again when the focus leaves
+  if (detail.contains(document.activeElement) && detail.dataset.clip === clip.name) return;
+  detailKey = key;
+  detail.dataset.clip = clip.name;
+  const save = async changes => {
+    const { data } = await api("/api/clip/update", { name: clip.name, ...changes });
+    showProblems("detail-problems", data.problems);
+    if (!data.problems.length) await refresh();
+  };
+  const field = (label, control) => el("label", {}, [label, control]);
+  // this clip's own text positions, picked by place; the saved value is a number (title: pixels from the top, caption: height from the bottom)
+  const positionBox = (key, places, own, max) => {
+    const choices = [["", own], ...places];
+    if (clip[key] !== undefined && !places.some(([value]) => value === clip[key])) choices.push([clip[key], `Custom (${clip[key]})`]);
+    const box = el("select", { onchange: () => { number.value = box.value; save({ [key]: box.value === "" ? "" : Number(box.value) }); } });
+    box.replaceChildren(...choices.map(([value, label]) => el("option", { value: String(value), textContent: label, selected: String(value) === String(clip[key] ?? "") })));
+    // the exact number, for a place between the named ones
+    const number = el("input", { type: "number", min: "0", max: String(max), step: "5", value: clip[key] ?? "", placeholder: "number", title: `0 to ${max}`, "aria-label": key === "title_y" ? "Title position, exact number" : "Caption position, exact number",
+      onchange: () => save({ [key]: number.value === "" ? "" : Number(number.value) }) });
+    return el("div", { className: "position-row" }, [box, number]);
+  };
+  // this clip's own fonts; "" = what the caption style says
+  const fontBox = (key, choices) => {
+    const box = el("select", { onchange: () => save({ [key]: box.value }) });
+    fontSelect(box, choices, clip[key] || "");
+    return box;
+  };
+  const captionFont = fontBox("caption_font", [["", "Style's own font"], ...CAPTION_FONTS.map(name => [name, name])]);
+  const titleFont = fontBox("title_font", [["", "Style's own font"], ...TITLE_FONTS.slice(1)]);
+  // open a caption style or layout in the Styles tab: it is chosen there and its fields are filled
+  const openStyle = (kind, name) => {
+    const prefix = kind === "captions" ? "cs" : "ls", pick = document.getElementById(prefix + "-pick");
+    pick.value = name;
+    pick.dispatchEvent(new Event("change"));
+    buildTiles(pick, document.getElementById(prefix + "-tiles"), kind);
+    location.hash = "styles";
+  };
+  // "Edit this ..." opens the preset the clip uses (every clip using it changes); "Make my own version" copies it for this clip only
+  const styleActions = (kind, current, noun) => {
+    const ownName = el("input", { placeholder: `name for your ${noun}` });
+    return el("div", { className: "pick" }, [el("div", { className: "actions style-actions" }, [
+      el("button", { type: "button", textContent: `Edit this ${noun}`, title: "changes every clip that uses it", onclick: () => openStyle(kind, current) }),
+      ownName,
+      el("button", { type: "button", textContent: "Make my own version", title: `copies this ${noun} for this clip only`, onclick: async () => {
+        const name = ownName.value.trim();
+        if (!name) return showProblems("detail-problems", ["Type a name for your version first."]);
+        if (state.presets[kind][name]) return showProblems("detail-problems", [`A ${noun} named '${name}' already exists; pick another name.`]);
+        const made = await api("/api/preset", { kind, name, preset: state.presets[kind][current] });
+        showProblems("detail-problems", made.data.problems);
+        if (made.data.problems.length) return;
+        await save({ [kind === "captions" ? "caption" : "layout"]: name });
+        openStyle(kind, name);
+      } })])]);
+  };
+  const titleY = positionBox("title_y", [[30, "Top"], [300, "Upper"], [900, "Center"], [1500, "Lower"]], "Layout's own place", 1700);
+  const captionHeight = positionBox("caption_margin_v", [[30, "Bottom"], [80, "Above the bottom"], [130, "Center"], [225, "Top"]], "Style's own place", 250);
+  const caption = el("select"), layout = el("select");
+  options(caption, Object.keys(state.presets.captions), clip.caption);
+  options(layout, Object.keys(state.presets.layouts), clip.layout);
+  caption.onchange = () => save({ caption: caption.value });
+  layout.onchange = () => {
+    const { own, foreign } = cameraPlan(clip.streamer, layout.value);
+    const changes = { layout: layout.value };
+    // another streamer's layout needs this streamer's camera box; back on a layout of its own, the override made for that is dropped
+    if (foreign) changes.cam_crop = own;
+    else if (own && clip.cam_crop === own) changes.cam_crop = "";
+    save(changes);
+  };
+  const hook = el("input", { value: clip.hook || "", placeholder: "no hook: the title is used", onchange: () => save({ hook: hook.value.trim() }) });
+  const body = el("input", { value: clip.body || "", onchange: () => save({ body: body.value.trim() }) });
+  const tags = el("input", { value: (clip.extra_tags || []).join(", "), placeholder: "gta6money, gta6atm",
+    onchange: () => save({ extra_tags: tags.value.split(/[\s,]+/).filter(Boolean) }) });
+  // a clip given another layout needs its streamer's own camera position: the layouts look where their own streamer's camera sits
+  const cropBox = el("input", { value: clip.cam_crop || "", placeholder: (state.presets.layouts[clip.layout] || {}).cam_crop || "",
+    onchange: () => save({ cam_crop: cropBox.value.trim() }) });
+  const creatorLook = (state.presets.creators || {})[clip.streamer];
+  const ownCrop = creatorLook && (state.presets.layouts[creatorLook.layout] || {}).cam_crop;
+  const findCameraButton = el("button", { type: "button", textContent: "Find the camera in this clip", onclick: async () => {
+    const { data } = await api("/api/clip/camera", { name: clip.name });
+    await refresh();
+    showProblems("detail-problems", [...(data.problems || []), ...(data.notes || [])]);
+  } });
+  const ownCropButton = ownCrop && ownCrop !== (clip.cam_crop || "")
+    ? el("button", { type: "button", textContent: `Use ${clip.streamer}'s own camera position`, onclick: () => save({ cam_crop: ownCrop }) }) : null;
+  // a frame of the source with the camera box drawn on it (the sources are 1920 x 1080), so the crop can be judged before rendering
+  const layoutCrop = (state.presets.layouts[clip.layout] || {}).cam_crop || "";
+  const cropRect = el("div", { className: "crop-rect" });
+  const placeCropRect = value => {
+    const match = /^crop=(\d+):(\d+):(\d+):(\d+)$/.exec(value || layoutCrop);
+    cropRect.hidden = !match;
+    if (match) Object.assign(cropRect.style, { left: `${match[3] / 19.2}%`, top: `${match[4] / 10.8}%`, width: `${match[1] / 19.2}%`, height: `${match[2] / 10.8}%` });
+  };
+  placeCropRect(clip.cam_crop);
+  cropBox.oninput = () => placeCropRect(cropBox.value.trim());
+  const cropPreview = el("div", { className: "crop-preview" }, [el("img", { alt: "a frame of the source with the camera box drawn on it", loading: "lazy",
+    src: `/api/frame?pick=${encodeURIComponent(clip.pick)}&t=${((clip.segments[0][0] + clip.segments[0][1]) / 2).toFixed(1)}&token=${encodeURIComponent(TOKEN)}` }), cropRect]);
+  const render = el("button", { textContent: info.running ? "Rendering..." : "Render", disabled: info.posted || info.running, title: info.posted ? "already uploaded" : "",
+    onclick: async () => {
+      const { data } = await api("/api/render", { name: clip.name });
+      showProblems("detail-problems", data.problems);
+      await refresh();
+    } });
+  const sendTo = (label, fileId, fill, section) => el("button", { textContent: label, disabled: !info.rendered,
+    title: info.rendered ? "" : "render the clip first", onclick: () => {
+      document.getElementById(fileId).value = info.file;
+      fill(true);
+      location.hash = section;
+    } });
+  // the caption check: the lines this clip shows, and fixes for words Whisper heard wrong (applied when the clip is rendered)
+  const fixes = clip.caption_fixes || {};
+  // the preview plays the last render; fixes and timing changes show in it after the clip is rendered again
+  const video = info.rendered ? el("video", { className: "clip-video", controls: true, preload: "metadata", playsInline: true,
+    src: `/api/video?clip=${encodeURIComponent(clip.name)}&token=${encodeURIComponent(TOKEN)}&v=${encodeURIComponent(info.outcome)}` }) : null;
+  const timing = clip.caption_timing || {};
+  const saveTiming = (key, start, end) => save({ caption_timing: { ...timing, [key]: { start, end } } });
+  const captionRow = line => {
+    const start = el("input", { type: "number", step: "0.05", min: "0", value: line.start, title: "the caption starts at this second", "aria-label": "Caption start second" });
+    const end = el("input", { type: "number", step: "0.05", min: "0", value: line.end, title: "the caption ends at this second", "aria-label": "Caption end second" });
+    start.onchange = end.onchange = () => saveTiming(line.key, Number(start.value), Number(end.value));
+    const jump = el("button", { type: "button", className: "caption-jump", disabled: !video, textContent: `${clock(Math.floor(line.start))}  ${line.text}`,
+      title: video ? "play the clip from this line" : "render the clip to preview it",
+      onclick: () => { video.currentTime = Math.max(line.start - 0.3, 0); video.play(); } });
+    const reset = timing[line.key] ? [el("button", { type: "button", textContent: "Reset", onclick: () => {
+      const rest = { ...timing }; delete rest[line.key]; save({ caption_timing: rest });
+    } })] : [];
+    return el("div", { className: "caption-row" }, [jump, start, end, ...reset]);
+  };
+  const captionList = el("div", { className: "caption-list" });
+  const loadCaptions = async () => {
+    const { status, data } = await api(`/api/captions?clip=${encodeURIComponent(clip.name)}`);
+    const lines = data.captions || [];
+    captionList.replaceChildren(...(lines.length ? lines.map(captionRow)
+      : [el("p", { className: "hint", textContent: status === 0 ? "The server is not reachable, so the words could not be loaded." : "No words are saved for this clip's source yet. Render the clip once to make them." })]));
+  };
+  const heardWrong = el("input", { placeholder: "heard wrong, for example bitch" });
+  const shouldBe = el("input", { placeholder: "should be, for example bench" });
+  const fixRows = Object.entries(fixes).map(([wrong, right]) => el("div", { className: "fix-row" }, [
+    right ? `Heard "${wrong}", shows "${right}" ` : `Heard "${wrong}", removed `,
+    el("button", { type: "button", textContent: "Remove fix", onclick: () => { const rest = { ...fixes }; delete rest[wrong]; save({ caption_fixes: rest }); } })]));
+  const captions = el("details", { className: "captions", open: captionsOpenFor === clip.name, ontoggle: () => {
+    captionsOpenFor = captions.open ? clip.name : "";
+    if (captions.open && !captionList.childElementCount) loadCaptions();
+  } }, [
+    el("summary", { textContent: "Check the captions" }),
+    el("p", { className: "hint", textContent: "These are the lines the clip shows, in order. Press a line to play the clip from there. The two numbers are when the line starts and ends, in seconds: change them to move the caption. If a word is wrong, add a fix below. Render the clip again to see a change; a fix with no right word removes the word." }),
+    captionList,
+    el("div", { className: "fields two" }, [field("Heard wrong", heardWrong), field("Should be", shouldBe)]),
+    el("div", { className: "actions" }, [el("button", { type: "button", textContent: "Add fix", onclick: () => {
+      if (heardWrong.value.trim()) save({ caption_fixes: { ...fixes, [heardWrong.value.trim()]: shouldBe.value.trim() } });
+    } })]),
+    ...fixRows]);
+  if (captions.open) loadCaptions();
+  detail.replaceChildren(
+    el("h3", {}, [creatorDot(clip.streamer), clip.name]),
+    statusPill(info),
+    el("div", { className: "actions review-row" }, [
+      el("span", { className: "hint", textContent: clip.review ? `You ${clip.review} this clip.` : "Waiting for your review." }),
+      el("button", { type: "button", className: "primary", textContent: "Approve", disabled: clip.review === "approved", onclick: () => save({ review: "approved" }) }),
+      el("button", { type: "button", textContent: "Reject", disabled: clip.review === "rejected", onclick: () => save({ review: "rejected" }) }),
+      ...(clip.review ? [el("button", { type: "button", textContent: "Clear", onclick: () => save({ review: "" }) })] : [])]),
+    el("p", { className: "hint", textContent: `Title on the clip: ${clip.title}. Source ${clip.pick}, segments ${clip.segments.map(pair => pair.join("-")).join(", ")} s.` }),
+    ...(clip.cam_unverified ? [el("div", { className: "note" }, [
+      "The camera position of this clip is not confirmed: no face was found near the usual spot, or the only face was far away, or the camera moves. The crop may show the wrong part. Render it, look at the camera box, then confirm. ",
+      el("button", { type: "button", textContent: "The camera looks right", onclick: () => save({ cam_unverified: false }) })])] : []),
+    el("div", { className: "fields" }, [field("Hook: the YouTube title and first line on Facebook", hook), field("Body, one short line", body),
+      field("Extra tags", tags), tileField("Caption style", caption, "captions"), styleActions("captions", clip.caption, "style"),
+      tileField("Layout", layout, "layouts"), styleActions("layouts", clip.layout, "layout"),
+      field("Caption font", captionFont), field("Title font", titleFont),
+      field("Title position: a place, or the exact pixels from the top (0 to 1700)", titleY),
+      field("Caption position: a place, or the exact height from the bottom (0 to 250, higher is further up)", captionHeight),
+      field("Camera crop: where the camera is in the stream, as crop=width:height:x:y. Empty uses the layout's own", cropBox),
+      el("div", { className: "actions" }, [findCameraButton, ...(ownCropButton ? [ownCropButton] : [])]), cropPreview]),
+    ...(video ? [video, el("p", { className: "hint", textContent: "This plays the last render of the clip." })] : []),
+    captions,
+    el("div", { className: "actions" }, [render, sendTo("Add to YouTube queue", "q-file", fillYoutube, "youtube"),
+      sendTo("Add to Facebook queue", "fb-file", fillFacebook, "facebook"), sendTo("Add to Instagram queue", "ig-file", fillInstagram, "instagram")]),
+    el("div", { id: "detail-problems" }));
+}
+
+// the tile pickers: a small picture of each caption style or layout; the hidden select keeps the value
+function captionPreview(preset) {
+  const outline = `${preset.outline / 2}px ${assToHex(preset.outline_colour)}`;
+  const line = (words, colour, size, extra = "") => el("span", { textContent: words, style: `font-family: ${preset.font}, sans-serif; font-size: ${size}px; color: ${colour}; -webkit-text-stroke: ${outline}; paint-order: stroke fill; ${extra}` });
+  // the title's highlighter box, flat or a left to right gradient, as the render draws it
+  const box = !preset.title_box ? "" : `background: ${preset.title_box_to ? `linear-gradient(90deg, ${nameToHex(preset.title_box)}, ${nameToHex(preset.title_box_to)})` : nameToHex(preset.title_box)}; padding: 0 3px; -webkit-text-stroke: 0;`;
+  return el("div", { className: "tile-sample" }, [line("TITLE", nameToHex(preset.title_colour), 9, box), line("Caption", assToHex(preset.primary), Math.min(preset.size * 1.1, 20))]);
+}
+
+function layoutPreview(preset) {
+  const phone = el("div", { className: "phone", title: preset.type });
+  if (preset.type === "face") {
+    phone.append(el("span", { className: "cam", style: "flex: 1" }));
+  } else if (preset.type === "split") {
+    phone.append(el("span", { className: "cam", style: `height: ${preset.cam_height / 19.2}%` }), el("span", { className: "game" }));
+  } else {
+    // the small camera box sits over full-frame gameplay; its height is about 0.62 of its width
+    const width = Math.min(preset.cam_height / 10.8, 90);
+    phone.append(el("span", { className: "game" }), el("span", { className: "cam-box", style: `width: ${width}%; height: ${width * 0.62 * 9 / 16}%` }));
+  }
+  return el("div", { style: "display: grid; place-items: center; height: 4.6rem" }, phone);
+}
+
+// arrows only move focus; Enter or Space chooses (choosing can save or load a style, so it must be deliberate)
+function arrowFocus(event, item, container) {
+  const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+  if (!step) return;
+  event.preventDefault();
+  const items = [...container.children];
+  const target = items[(items.indexOf(item) + step + items.length) % items.length];
+  items.forEach(other => { other.tabIndex = other === target ? 0 : -1; });
+  target.focus();
+}
+
+function buildTiles(select, container, kind) {
+  const presets = state.presets[kind];
+  container.replaceChildren(...[...select.options].map(option => {
+    const name = option.value;
+    const preview = name === "" ? el("span", { className: "tile-new", textContent: "+" })
+      : kind === "captions" ? captionPreview(presets[name]) : layoutPreview(presets[name]);
+    const tile = el("button", { type: "button", className: "tile", onclick: () => {
+      select.value = name;
+      select.dispatchEvent(new Event("change"));
+      buildTiles(select, container, kind);
+    } }, [preview, el("span", { className: "tile-name", textContent: name || "New" })]);
+    tile.setAttribute("role", "radio");
+    tile.setAttribute("aria-checked", String(select.value === name));
+    // one Tab stop per picker (the chosen tile), arrow keys move between tiles
+    tile.tabIndex = select.value === name ? 0 : -1;
+    tile.onkeydown = event => arrowFocus(event, tile, container);
+    return tile;
+  }));
+  if (!container.querySelector("[tabindex='0']") && container.firstChild) container.firstChild.tabIndex = 0;
+}
+
+function tileField(label, select, kind) {
+  select.hidden = true;
+  const tiles = el("div", { className: "tiles" });
+  tiles.setAttribute("role", "radiogroup");
+  tiles.setAttribute("aria-label", label);
+  buildTiles(select, tiles, kind);
+  return el("div", { className: "pick" }, [el("span", { className: "label", textContent: label }), select, tiles]);
+}
+
+function renderNewClipForm() {
+  options(document.getElementById("n-streamer"), priorityFirst(Object.keys(state.presets.creators)));
+  options(document.getElementById("n-pick"), state.picks);
+  options(document.getElementById("n-caption"), Object.keys(state.presets.captions));
+  options(document.getElementById("n-layout"), Object.keys(state.presets.layouts));
+  // the first time, start from the chosen creator's own look
+  if (!lookApplied) { lookApplied = true; applyCreatorLook(); }
+  buildTiles(document.getElementById("n-caption"), document.getElementById("n-caption-tiles"), "captions");
+  buildTiles(document.getElementById("n-layout"), document.getElementById("n-layout-tiles"), "layouts");
+}
+
+let lookApplied = false;
+
+function applyCreatorLook() {
+  const creator = state.presets.creators[document.getElementById("n-streamer").value];
+  if (!creator) return;
+  document.getElementById("n-caption").value = creator.caption;
+  document.getElementById("n-layout").value = creator.layout;
+  buildTiles(document.getElementById("n-caption"), document.getElementById("n-caption-tiles"), "captions");
+  buildTiles(document.getElementById("n-layout"), document.getElementById("n-layout-tiles"), "layouts");
+}
+
+let creatorsLoaded = false;
+
+function renderCreators() {
+  const names = priorityFirst(Object.keys(state.presets.creators));
+  document.getElementById("c-creators").textContent = names.length;
+  const pick = document.getElementById("cr-pick");
+  const wanted = [NEW_STYLE, ...names];
+  const keep = wanted.includes(pick.value) ? pick.value : NEW_STYLE;
+  pick.replaceChildren(...wanted.map(name => el("option", { value: name, textContent: name || "(new)", selected: name === keep })));
+  const chipBox = document.getElementById("cr-chips");
+  chipBox.replaceChildren(...wanted.map(name => {
+    const chip = el("button", { className: "chip" + (name === keep ? " active" : "") + (name === PRIORITY_CREATOR ? " priority" : ""), type: "button", textContent: name || "+ New creator",
+      onclick: () => { pick.value = name; loadCreator(); renderCreators(); } });
+    chip.setAttribute("aria-checked", String(name === keep));
+    chip.setAttribute("role", "radio");
+    chip.tabIndex = name === keep ? 0 : -1;
+    chip.onkeydown = event => arrowFocus(event, chip, chipBox);
+    return chip;
+  }));
+  options(document.getElementById("cr-caption"), Object.keys(state.presets.captions));
+  options(document.getElementById("cr-layout"), Object.keys(state.presets.layouts));
+  buildTiles(document.getElementById("cr-caption"), document.getElementById("cr-caption-tiles"), "captions");
+  buildTiles(document.getElementById("cr-layout"), document.getElementById("cr-layout-tiles"), "layouts");
+  // fill the fields once; after that the user's typing is left alone
+  if (!creatorsLoaded) { creatorsLoaded = true; loadCreator(); }
+}
+
+function loadCreator() {
+  const name = document.getElementById("cr-pick").value;
+  const creator = state.presets.creators[name] || { youtube: [], facebook: [],
+    caption: Object.keys(state.presets.captions)[0], layout: Object.keys(state.presets.layouts)[0] };
+  document.getElementById("cr-name").value = name;
+  document.getElementById("cr-name").disabled = name !== NEW_STYLE;
+  document.getElementById("cr-youtube").value = creator.youtube.join(", ");
+  document.getElementById("cr-facebook").value = creator.facebook.join(", ");
+  document.getElementById("cr-caption").value = creator.caption;
+  document.getElementById("cr-layout").value = creator.layout;
+  buildTiles(document.getElementById("cr-caption"), document.getElementById("cr-caption-tiles"), "captions");
+  buildTiles(document.getElementById("cr-layout"), document.getElementById("cr-layout-tiles"), "layouts");
+  const count = state.clips.filter(clip => clip.streamer === name).length;
+  document.getElementById("cr-used").textContent = name ? `${count} clip${count === 1 ? "" : "s"} in the library.` : "";
+}
+
+async function saveCreator() {
+  const split = id => document.getElementById(id).value.split(/[\s,]+/).filter(Boolean);
+  const name = document.getElementById("cr-pick").value || document.getElementById("cr-name").value.trim();
+  const creator = { youtube: split("cr-youtube"), facebook: split("cr-facebook"),
+    caption: document.getElementById("cr-caption").value, layout: document.getElementById("cr-layout").value };
+  const { data } = await api("/api/creator", { name, creator });
+  showProblems("cr-problems", data.problems);
+  if (data.problems.length) return;
+  await refresh();
+  document.getElementById("cr-pick").value = name;
+  renderCreators();
+  loadCreator();
+}
+
+// ASS colours are &HAABBGGRR; ffmpeg colours are names or #RRGGBB; the colour pickers use #rrggbb
+const NAMED_COLOURS = { white: "#ffffff", yellow: "#ffff00", red: "#ff0000", black: "#000000", green: "#008000", blue: "#0000ff", orange: "#ffa500" };
+function nameToHex(colour) { return /^#[0-9a-f]{6}$/i.test(colour) ? colour.toLowerCase() : (NAMED_COLOURS[colour] || "#ffffff"); }
+function assToHex(ass) {
+  const match = /^&H[0-9A-F]{2}([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/i.exec(ass);
+  return match ? "#" + match[3] + match[2] + match[1] : "#ffffff";
+}
+function hexToAss(hex) { return ("&H00" + hex.slice(5, 7) + hex.slice(3, 5) + hex.slice(1, 3)).toUpperCase(); }
+
+const NEW_STYLE = "";
+let stylesLoaded = false;
+
+function styleOptions(select, names) {
+  const keep = [NEW_STYLE, ...names].includes(select.value) ? select.value : NEW_STYLE;
+  select.replaceChildren(...[NEW_STYLE, ...names].map(name => el("option", { value: name, textContent: name || "(new)", selected: name === keep })));
+}
+
+function usedBy(field, name) {
+  const count = state.clips.filter(clip => clip[field] === name).length;
+  return name && count ? `Used by ${count} clip${count === 1 ? "" : "s"}; their next render uses the changes.` : "";
+}
+
+// the title is drawn from a font file; these are the files in the fonts folder, "" is the default Arial Bold
+const TITLE_FONTS = [["", "Arial Bold (default)"], ["Anton-Regular.ttf", "Anton"], ["BebasNeue-Regular.ttf", "Bebas Neue"],
+  ["Poppins-ExtraBold.ttf", "Poppins ExtraBold"], ["Bangers-Regular.ttf", "Bangers"], ["LuckiestGuy-Regular.ttf", "Luckiest Guy"]];
+const CAPTION_FONTS = ["Anton", "Bebas Neue", "Poppins ExtraBold", "Bangers", "Luckiest Guy", "Arial", "Arial Black", "Segoe UI Black", "Segoe UI", "Impact", "Bahnschrift", "Comic Sans MS", "Georgia", "Franklin Gothic Medium", "Calibri", "Verdana"];
+function fontSelect(select, choices, value) {
+  select.replaceChildren(...choices.map(([id, label]) => el("option", { value: id, textContent: label, selected: id === value })));
+}
+const SWATCHES = ["#ffffff", "#000000", "#ffd400", "#ff6a00", "#ff2d2d", "#e5195a", "#ff00c8", "#9b30ff", "#3d5afe", "#00c6ff", "#00e5ff", "#39ff14", "#11998e", "#f7971e", "#c0c0c0", "#1a1a1a"];
+let lastColourInput = null;
+function buildSwatches() {
+  const row = document.getElementById("cs-swatches");
+  row.replaceChildren(...SWATCHES.map(colour => el("button", { type: "button", title: colour, "aria-label": colour,
+    style: `width: 1.75rem; height: 1.75rem; min-height: 0; padding: 0; border-radius: 50%; background: ${colour}`,
+    onclick: () => { if (lastColourInput) { lastColourInput.value = colour; lastColourInput.dispatchEvent(new Event("input")); } } })));
+  for (const input of document.querySelectorAll("#styles input[type=color]")) input.addEventListener("focus", () => { lastColourInput = input; });
+}
+function paintSample() {
+  const sample = document.getElementById("cs-sample");
+  sample.style.fontFamily = document.getElementById("cs-font").value + ", sans-serif";
+  sample.style.fontSize = document.getElementById("cs-size").value * 1.6 + "px";
+  sample.style.color = document.getElementById("cs-primary").value;
+  sample.style.webkitTextStroke = document.getElementById("cs-outline").value / 2 + "px " + document.getElementById("cs-outline-colour").value;
+  sample.style.paintOrder = "stroke fill";
+  // the title as the render draws it: its own colour, font and highlight box, flat or a left to right gradient
+  const title = document.getElementById("cs-title-sample");
+  const boxOn = document.getElementById("cs-box-on").checked, from = document.getElementById("cs-box").value, to = document.getElementById("cs-box2").value;
+  const fontBox = document.getElementById("cs-title-font");
+  title.style.background = boxOn ? (document.getElementById("cs-box2-on").checked ? `linear-gradient(90deg, ${from}, ${to})` : from) : "";
+  title.style.color = document.getElementById("cs-title-colour").value;
+  title.style.fontFamily = (fontBox.selectedOptions[0] ? fontBox.selectedOptions[0].textContent.replace(/ \(default\)| Bold/g, "") : "Arial") + ", sans-serif";
+}
+
+function loadCaption() {
+  pendingSave = "";
+  const name = document.getElementById("cs-pick").value;
+  const preset = state.presets.captions[name] || state.presets.captions.default || Object.values(state.presets.captions)[0];
+  document.getElementById("cs-name").value = name;
+  document.getElementById("cs-name").disabled = name !== NEW_STYLE;
+  // each font is listed in its own look; a font a style already uses but the list lacks is kept so saving does not change it
+  const fontBox = document.getElementById("cs-font");
+  fontBox.replaceChildren(...[...new Set([...CAPTION_FONTS, preset.font])].map(name => el("option", { value: name, textContent: name, style: `font-family: ${name}, sans-serif`, selected: name === preset.font })));
+  document.getElementById("cs-size").value = preset.size;
+  document.getElementById("cs-outline").value = preset.outline;
+  document.getElementById("cs-margin").value = preset.margin_v;
+  document.getElementById("cs-primary").value = assToHex(preset.primary);
+  document.getElementById("cs-outline-colour").value = assToHex(preset.outline_colour);
+  document.getElementById("cs-title-colour").value = nameToHex(preset.title_colour);
+  document.getElementById("cs-bottom-colour").value = nameToHex(preset.bottom_colour);
+  fontSelect(document.getElementById("cs-title-font"), TITLE_FONTS, preset.title_font || "");
+  document.getElementById("cs-box-on").checked = Boolean(preset.title_box);
+  document.getElementById("cs-box").value = nameToHex(preset.title_box || "#ffd400");
+  document.getElementById("cs-box2-on").checked = Boolean(preset.title_box_to);
+  document.getElementById("cs-box2").value = nameToHex(preset.title_box_to || "#dd2476");
+  paintSample();
+  document.getElementById("cs-used").textContent = usedBy("caption", name);
+  paintSample();
+}
+
+function showLayoutFields() {
+  const type = document.getElementById("ls-type").value;
+  for (const label of document.querySelectorAll("#styles [data-for]")) label.hidden = !label.dataset.for.split(" ").includes(type);
+}
+
+function loadLayout() {
+  pendingSave = "";
+  const name = document.getElementById("ls-pick").value;
+  const preset = state.presets.layouts[name] || Object.values(state.presets.layouts)[0];
+  document.getElementById("ls-name").value = name;
+  document.getElementById("ls-name").disabled = name !== NEW_STYLE;
+  document.getElementById("ls-type").value = preset.type;
+  document.getElementById("ls-cam-crop").value = preset.cam_crop || "";
+  document.getElementById("ls-game-crop").value = preset.game_crop || "";
+  document.getElementById("ls-cam-height").value = preset.cam_height || "";
+  document.getElementById("ls-big-width").value = preset.big_width || "";
+  document.getElementById("ls-used").textContent = usedBy("layout", name);
+  showLayoutFields();
+}
+
+function renderStyles() {
+  styleOptions(document.getElementById("cs-pick"), Object.keys(state.presets.captions));
+  styleOptions(document.getElementById("ls-pick"), Object.keys(state.presets.layouts));
+  buildTiles(document.getElementById("cs-pick"), document.getElementById("cs-tiles"), "captions");
+  buildTiles(document.getElementById("ls-pick"), document.getElementById("ls-tiles"), "layouts");
+  // fill the fields once; after that the user's typing is left alone
+  if (!stylesLoaded) { stylesLoaded = true; loadCaption(); loadLayout(); }
+}
+
+let pendingSave = "";
+async function saveStyle(kind, pickId, nameId, preset, problemsId, loader) {
+  const name = document.getElementById(pickId).value || document.getElementById(nameId).value.trim();
+  // changing a style that clips already use changes their next render: ask for a second click
+  if (!document.getElementById(pickId).value && state.presets[kind][name]) {
+    showProblems(problemsId, [`"${name}" already exists: pick it in the list to change it, or use another name.`]);
+    return;
+  }
+  const field = kind === "captions" ? "caption" : "layout";
+  const users = state.clips.filter(clip => clip[field] === name).length;
+  if (name && users && pendingSave !== `${kind}:${name}`) {
+    pendingSave = `${kind}:${name}`;
+    showProblems(problemsId, [`${users} clip${users === 1 ? " uses" : "s use"} "${name}": their next render will change. Press Save again to confirm.`]);
+    return;
+  }
+  pendingSave = "";
+  const { data } = await api("/api/preset", { kind, name, preset });
+  showProblems(problemsId, data.problems);
+  if (data.problems.length) return;
+  await refresh();
+  document.getElementById(pickId).value = name;
+  renderStyles();
+  loader();
+}
+
+// what the owner has typed into each moment's form, kept here because the list is redrawn when the data changes
+const drafts = {};
+const DEFAULT_FROM_SECONDS = 30;
+const DEFAULT_TO_SECONDS = 75;
+const TITLE_LIMIT = 28;
+const HOOK_LIMIT = 100;
+const CANDIDATE_PAGE = 24;
+const sourceShown = {};
+
+function clock(seconds) {
+  const pad = (number) => String(number).padStart(2, "0");
+  return `${Math.floor(seconds / 3600)}:${pad(Math.floor(seconds % 3600 / 60))}:${pad(seconds % 60)}`;
+}
+
+// the first words of what was said, cut at a word, as a starting title the owner can change
+function shortTitle(text) {
+  let title = "";
+  for (const word of text.toUpperCase().split(/\s+/).filter(Boolean)) {
+    if ((title + " " + word).trim().length > TITLE_LIMIT) break;
+    title = (title + " " + word).trim();
+  }
+  return title;
+}
+
+function draftFor(source, candidate) {
+  const key = source.id + ":" + candidate.id;
+  if (!drafts[key]) {
+    drafts[key] = { name: `${source.creator}_${candidate.id}`, title: shortTitle(candidate.text),
+      // a hook cut at the limit ends on a whole word, not in the middle of one
+      hook: (candidate.text.trim().length > HOOK_LIMIT ? candidate.text.trim().slice(0, HOOK_LIMIT).replace(/\s+\S*$/, "") : candidate.text.trim()).trim(), from: DEFAULT_FROM_SECONDS, to: DEFAULT_TO_SECONDS };
+  }
+  return drafts[key];
+}
+
+function showCardProblems(box, problems) {
+  box.replaceChildren(...(problems || []).map(text => el("div", { className: "problem", textContent: text })));
+}
+
+function candidateCard(source, candidate) {
+  const draft = draftFor(source, candidate);
+  const job = (state.jobs || {})[`approve:${source.id}:${candidate.id}`] || "";
+  const problems = el("div");
+  const audio = el("audio", { controls: true, preload: "none",
+    src: `/api/window?source=${encodeURIComponent(source.id)}&candidate=${encodeURIComponent(candidate.id)}&token=${encodeURIComponent(TOKEN)}` });
+  // a moment found only from the comments was never measured: its loudness is a placeholder far below -60 LUFS
+  const measured = candidate.loudness > -60;
+  const parts = [el("strong", { textContent: `${candidate.rank ? "#" + candidate.rank + ", " : ""}${measured ? "loudest" : "viewers' pick"} at ${clock(candidate.peak)}` }),
+    el("span", { className: "hint", textContent: `${measured ? candidate.loudness.toFixed(1) + " LUFS, " : ""}window ${clock(candidate.start)} to ${clock(candidate.end)}` }),
+    ...(candidate.comment_likes ? [el("span", { className: "hint", textContent: `${candidate.comment_likes} likes in the comments: "${candidate.comment}"` })] : []),
+    el("p", { className: "cand-text", textContent: candidate.text || "(nobody spoke in this window)" }), audio];
+  // a moment already cut (this session or an earlier one) is found by the server from its pick name
+  const cutName = candidate.clip || draft.name;
+  if (job === "done" || (candidate.clip && job !== "running")) {
+    const rendered = state.rendered.includes(`clips/${source.creator}/${cutName}.mp4`);
+    const cutCrop = (state.clips.find(clip => clip.name === cutName) || {}).cam_crop;
+    const queue = el("button", { type: "button", textContent: "Add to both queues", disabled: !rendered, onclick: async (event) => {
+      event.target.disabled = true;
+      const { data } = await api("/api/clip/autoqueue", { name: cutName });
+      event.target.disabled = false;
+      showCardProblems(problems, data.problems || [`Queued: YouTube ${data.slots.youtube}, Facebook ${data.slots.facebook}`]);
+      if (!data.problems) problems.firstChild.className = "note";
+    } });
+    parts.push(el("p", { className: "note", textContent: rendered
+      ? `Rendered as ${cutName}. ${cutCrop ? `The camera was found from the face (${cutCrop}).` : "No face was found near the usual camera spot, so the layout's own crop was used and may show the wrong part: check the frame."} Check it in the Library editor before queuing.`
+      : `Added to the Library as ${cutName}; render it there first.` }),
+      el("div", { className: "actions" }, [queue, el("a", { href: "#library", textContent: "Open the Library" })]), problems);
+    return el("div", { className: "cand" }, parts);
+  }
+  const field = (label, key, type = "text") => el("label", {}, [label, el("input", { type, value: draft[key],
+    oninput: event => { draft[key] = type === "number" ? Number(event.target.value) : event.target.value; } })]);
+  const approve = el("button", { type: "button", className: "primary", disabled: job === "running",
+    textContent: job === "running" ? "Cutting and rendering..." : "Cut this moment", onclick: async () => {
+      const { data } = await api("/api/candidate/approve", { source: source.id, candidate: candidate.id, ...draft });
+      showCardProblems(problems, data.problems);
+      lastState = ""; refresh();
+    } });
+  parts.push(el("div", { className: "fields" }, [field("Clip name", "name"), field("Title on the clip", "title"), field("Hook", "hook")]),
+    el("div", { className: "fields two" }, [field("From second", "from", "number"), field("To second", "to", "number")]),
+    el("div", { className: "actions" }, [approve]), problems);
+  if (job.startsWith("failed")) problems.append(el("div", { className: "problem", textContent: job }));
+  return el("div", { className: "cand" }, parts);
+}
+
+function sourceBlock(source) {
+  const scanning = source.job === "running";
+  const failed = source.job.startsWith("failed") || source.status === "failed";
+  const status = scanning ? pill("scanning", "warn") : failed ? pill("failed", "bad") : pill(source.status, source.status === "scanned" ? "ok" : "");
+  const scan = el("button", { type: "button", disabled: scanning, textContent: failed ? "Try again" : "Find moments", onclick: async () => {
+    const { data } = await api("/api/source/scan", { id: source.id });
+    showProblems("src-problems", data.problems);
+    lastState = ""; refresh();
+  } });
+  const head = el("div", { className: "source-head" }, [el("h3", {}, [creatorDot(source.creator), source.title || source.id]), status,
+    el("span", { className: "hint", textContent: `${source.creator}, ${Math.round(source.duration / 60)} min` })]);
+  if (source.status !== "scanned") head.append(scan);
+  const parts = [head];
+  if (scanning) parts.push(el("p", { className: "note", textContent: "Scanning: it downloads the audio, finds the loudest moments and transcribes them. A 3 hour stream took about 35 minutes on this PC; you can leave the page." }));
+  if (source.job.startsWith("failed")) parts.push(el("p", { className: "problem", textContent: source.job }));
+  if (source.candidates.length) {
+    // best first: moments with real speech, then the louder ones (a source scanned before ranking existed keeps its order)
+    const ranked = [...source.candidates].sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity));
+    const shown = sourceShown[source.id] || CANDIDATE_PAGE;
+    parts.push(el("p", { className: "hint", textContent: "Best first: moments with speech come before the loudest ones with none." }),
+      el("div", { className: "cands" }, ranked.slice(0, shown).map(candidate => candidateCard(source, candidate))));
+    // about 200 windows each with its own player made the tab slow: show a page at a time, like the Library
+    if (ranked.length > shown) parts.push(el("button", { type: "button", textContent: `Show more (${ranked.length - shown} left)`,
+      onclick: () => { sourceShown[source.id] = shown + CANDIDATE_PAGE; lastState = ""; refresh(); } }));
+  }
+  return el("div", { className: "source" }, parts);
+}
+
+function renderSources() {
+  document.getElementById("c-sources").textContent = state.sources.length;
+  options(document.getElementById("src-creator"), priorityFirst(Object.keys(state.presets.creators)));
+  const list = document.getElementById("src-list");
+  // typing in a moment's form must not be wiped by the 3 s refresh; focusout redraws
+  if (list.contains(document.activeElement) && document.activeElement.matches("input")) return;
+  // a redraw would cut off a window the owner is listening to
+  if ([...list.querySelectorAll("audio")].some(player => !player.paused)) return;
+  const blocks = priorityFirst(state.sources, source => source.creator).map(sourceBlock);
+  list.replaceChildren(...(blocks.length ? blocks : [el("p", { className: "detail-empty", textContent: "No sources yet. Paste a YouTube link above." })]));
+}
+
+// a state change that arrived while a window was playing was skipped: draw it once playback stops (pause does not bubble, so capture)
+document.getElementById("src-list").addEventListener("pause", () => setTimeout(renderSources, 0), true);
+
+async function addSource() {
+  const { data } = await api("/api/source", { url: document.getElementById("src-url").value.trim(), creator: document.getElementById("src-creator").value });
+  showProblems("src-problems", data.problems);
+  if (data.source) { document.getElementById("src-url").value = ""; lastState = ""; refresh(); }
+}
+
+function parseSegments(text) {
+  return text.split(",").map(part => part.trim()).filter(Boolean).map(part => part.split("-").map(Number));
+}
+
+// the full ISO text wrapped in the middle of the date: show month-day and time, keep the full text as a tooltip
+function shortTime(iso) { return String(iso).slice(5, 16).replace("T", " "); }
+
+function renderQueue() {
+  const body = document.querySelector("#queue tbody");
+  document.getElementById("c-youtube").textContent = state.queue.length;
+  body.replaceChildren(...(state.queue.length ? state.queue.map(entry => el("tr", {}, [
+    el("td", { textContent: entry.title }), el("td", { textContent: shortTime(entry.publish_at), title: entry.publish_at }),
+    el("td", {}, entry.video_id ? idPill("uploaded", entry.video_id, "ok") : pill("waiting"))]))
+    : [emptyRow(3, "Nothing queued. Choose a clip, fill its text and set a time.")]));
+  options(document.getElementById("q-file"), state.rendered);
+  document.getElementById("slots").replaceChildren(...state.slots.map(slot => el("button", {
+    textContent: slot.slice(5, 16).replace("T", " "), onclick: () => { document.getElementById("q-time").value = slot.slice(0, 16); checkDay(); } })));
+  document.getElementById("login-banner").hidden = !state.login_expired;
+  document.getElementById("upload").disabled = state.upload.running;
+  document.getElementById("upload-state").textContent = state.upload.running ? "upload running..." : "";
+}
+
+function renderFacebook() {
+  const banner = document.getElementById("fb-banner");
+  const messages = [];
+  if (!state.facebook_ready) messages.push("No Facebook token file yet (D:/Tools/meta/facebook.json). Do the token steps first.");
+  if (state.facebook_login_expired) messages.push("The Facebook token has expired. Redo the token steps.");
+  banner.textContent = messages.join(" ");
+  banner.hidden = messages.length === 0;
+  document.getElementById("c-facebook").textContent = state.facebook_queue.length;
+  const body = document.querySelector("#fb-queue tbody");
+  body.replaceChildren(...(state.facebook_queue.length ? state.facebook_queue.map(entry => el("tr", {}, [
+    el("td", { textContent: entry.caption.slice(0, 60) }), el("td", { textContent: shortTime(entry.publish_at), title: entry.publish_at }),
+    el("td", {}, entry.status === "scheduled" ? idPill("scheduled", entry.reel_id, "ok")
+      : entry.reel_id ? idPill("needs a check", entry.reel_id, "warn") : pill("waiting"))]))
+    : [emptyRow(3, "Nothing queued. Choose a clip, fill its text and set a time.")]));
+  options(document.getElementById("fb-file"), state.rendered);
+  document.getElementById("fb-slots").replaceChildren(...state.facebook_slots.map(slot => el("button", {
+    textContent: slot.slice(5, 16).replace("T", " "), onclick: () => { document.getElementById("fb-time").value = slot.slice(0, 16); checkFacebookDay(); } })));
+  document.getElementById("fb-upload").disabled = state.upload.running;
+  document.getElementById("fb-upload-state").textContent = state.upload.running ? "an upload is running..." : "";
+}
+
+function instagramStatus(entry) {
+  const note = entry.error ? " " + String(entry.error).slice(0, 80) : "";
+  if (entry.status === "published") return pill("published", "ok");
+  if (entry.status === "needs_check") return pill("needs a check" + note, "warn");
+  if (entry.status === "missed") return pill("missed, too late", "warn");
+  if (entry.retry_after) return pill("retrying after " + String(entry.retry_after).slice(0, 16).replace("T", " ") + note, "warn");
+  return entry.uploaded ? pill("uploaded, Meta is processing") : pill("waiting");
+}
+
+function renderInstagram() {
+  document.getElementById("c-instagram").textContent = state.instagram_queue.length;
+  document.querySelector("#ig-queue tbody").replaceChildren(...(state.instagram_queue.length ? state.instagram_queue.map(entry => el("tr", {}, [
+    el("td", { textContent: String(entry.file).split(/[\\/]/).pop() }), el("td", { textContent: shortTime(entry.publish_at), title: entry.publish_at }),
+    el("td", {}, instagramStatus(entry))]))
+    : [emptyRow(3, "Nothing queued. Choose a clip, fill its text and set a time.")]));
+  options(document.getElementById("ig-file"), state.rendered);
+  document.getElementById("ig-slots").replaceChildren(...state.instagram_slots.map(slot => el("button", {
+    textContent: slot.slice(5, 16).replace("T", " "), onclick: () => { document.getElementById("ig-time").value = slot.slice(0, 16); } })));
+}
+
+function checkFacebookDay() {
+  const value = document.getElementById("fb-time").value;
+  const count = value ? state.facebook_queue.filter(entry => entry.publish_at.startsWith(value.slice(0, 10))).length : 0;
+  document.getElementById("fb-day-warning").textContent =
+    count >= state.facebook_daily_limit ? `That day already has ${count} Facebook reels; the API allows ${state.facebook_daily_limit} a day.` : "";
+}
+
+// shortcut: compares the date part of publish_at as written, fine while every entry uses +06:00; upgrade if other zones are used
+function checkDay() {
+  const value = document.getElementById("q-time").value;
+  const count = value ? state.queue.filter(entry => entry.publish_at.startsWith(value.slice(0, 10))).length : 0;
+  document.getElementById("day-warning").textContent =
+    count >= state.daily_limit ? `That day already has ${count} uploads; YouTube allows about ${state.daily_limit} a day.` : "";
+}
+
+// the clip file is clips/<streamer>/<name>.mp4; the saved hook, body and tags make the text
+const lastFilled = {};
+
+async function fillText(fileId, platform, fieldIds, fill, noteId, replaceEdits) {
+  const note = document.getElementById(noteId);
+  const edited = fieldIds.some(id => {
+    const value = document.getElementById(id).value;
+    return value !== "" && value !== (lastFilled[id] || "");
+  });
+  if (edited && !replaceEdits) { note.textContent = "Kept your edits. Press Fill text from clip to replace them."; return; }
+  const name = document.getElementById(fileId).value.split("/").pop().replace(/\.mp4$/, "");
+  const { status, data } = await api(`/api/text?clip=${encodeURIComponent(name)}&platform=${platform}`);
+  if (status !== 200) { note.textContent = status === 0 ? "The server is not reachable, so nothing was filled." : "No saved clip for this file, so nothing was filled."; return; }
+  fill(data);
+  for (const id of fieldIds) lastFilled[id] = document.getElementById(id).value;
+  note.textContent = data.used_fallback ? "No hook saved, used the clip title as written. Check it before posting, or add a hook in the library." : "";
+}
+
+// tasks that run in the background: a card shows while one runs, with a percentage when it is known, and says when it is done or failed
+const BASE_TITLE = document.title;
+const watching = new Map();
+function currentTasks(data) {
+  const tasks = [];
+  for (const [name, outcome] of Object.entries(data.renders || {})) {
+    tasks.push({ key: "render:" + name, label: `Render ${name}`, outcome, share: (data.render_progress || {})[name] });
+  }
+  for (const [key, outcome] of Object.entries(data.jobs || {})) {
+    const [kind, ...rest] = key.split(":");
+    tasks.push({ key: "job:" + key, label: (kind === "scan" ? "Scan " : "Cut ") + rest.join(" "), outcome });
+  }
+  tasks.push({ key: "upload", label: "Upload queue", outcome: data.upload.running ? "running" : "done" });
+  return tasks;
+}
+function showTask(key, label, kind, text, share, keep) {
+  const box = document.getElementById("tasks");
+  let card = box.querySelector(`[data-task="${CSS.escape(key)}"]`);
+  if (!card) {
+    card = el("div", { className: "task" }); card.dataset.task = key; box.append(card);
+  }
+  card.className = "task " + kind;
+  const row = el("div", { className: "task-row" }, [el("span", { textContent: `${label}: ${text}` })]);
+  if (keep) row.append(el("button", { type: "button", textContent: "Close", onclick: () => card.remove() }));
+  card.replaceChildren(row, ...(share === undefined ? [] : [el("progress", { max: "1", value: String(share), "aria-label": label })]));
+  if (kind === "ok") setTimeout(() => card.remove(), 8000);
+}
+function desktopAlert(text) {
+  if (document.hidden && window.Notification && Notification.permission === "granted") new Notification("Clip tool", { body: text });
+}
+function updateNotifications(data) {
+  let busy = "";
+  for (const task of currentTasks(data)) {
+    const running = task.outcome === "running";
+    if (running) {
+      watching.set(task.key, task.label);
+      const percent = task.share === undefined ? "" : ` ${Math.round(task.share * 100)}%`;
+      showTask(task.key, task.label, "", "working" + percent, task.share ?? 0, false);
+      busy = busy || `${percent.trim()} ${task.label}`.trim();
+    } else if (watching.has(task.key)) {
+      // it was running a moment ago: say how it ended
+      watching.delete(task.key);
+      const failed = task.outcome.startsWith("failed");
+      const text = failed ? task.outcome : "done";
+      showTask(task.key, task.label, failed ? "bad" : "ok", text, undefined, failed);
+      desktopAlert(`${task.label}: ${text}`);
+    }
+  }
+  // a task that vanished from the state without ending (an approval that failed early) must not stay on screen
+  const known = new Set(currentTasks(data).map(task => task.key));
+  for (const key of [...watching.keys()]) if (!known.has(key)) {
+    watching.delete(key);
+    document.getElementById("tasks").querySelector(`[data-task="${CSS.escape(key)}"]`)?.remove();
+  }
+  document.title = busy ? `(${busy}) ${BASE_TITLE}` : BASE_TITLE;
+}
+document.getElementById("alerts-button").onclick = async () => {
+  if (!window.Notification) return;
+  if (Notification.permission === "default") await Notification.requestPermission();
+  document.getElementById("alerts-button").textContent = "Desktop alerts: " + (Notification.permission === "granted" ? "on" : "blocked");
+};
+if (window.Notification && Notification.permission === "granted") document.getElementById("alerts-button").textContent = "Desktop alerts: on";
+
+async function refresh() {
+  const { status, data } = await api("/api/state");
+  if (status !== 200) return; // api() has already shown the banner; the page and the user's typing stay
+  // the progress share changes on every poll but must not redraw the panels, so it is taken out of the comparison below
+  updateNotifications(data);
+  delete data.render_progress;
+  // the page is polled every 3 s; redraw only when the data changed, so open dropdowns and typing are left alone
+  const text = JSON.stringify(data);
+  if (text === lastState) return;
+  lastState = text;
+  state = data;
+  renderLibrary(); renderSources(); renderNewClipForm(); renderStyles(); renderCreators(); renderQueue(); renderFacebook(); renderInstagram();
+}
+
+async function pollLog() {
+  const { status, data } = await api("/api/log");
+  if (status === 200 && data.lines.length) document.getElementById("log").textContent = data.lines.join("\n");
+  const facebook = await api("/api/facebook/log");
+  if (facebook.status === 200 && facebook.data.lines.length) document.getElementById("fb-log").textContent = facebook.data.lines.join("\n");
+  const wasRunning = state && state.upload.running;
+  await refresh();
+  if (wasRunning && !state.upload.running) showProblems("queue-problems", []);
+}
+
+document.getElementById("lib-search").oninput = event => { view.search = event.target.value; view.shown = PAGE_SIZE; renderLibrary(); };
+document.getElementById("lib-review").onchange = event => { view.review = event.target.value; view.shown = PAGE_SIZE; renderLibrary(); };
+document.getElementById("lib-status").onchange = event => { view.status = event.target.value; view.shown = PAGE_SIZE; renderLibrary(); };
+document.getElementById("lib-sort").onchange = event => { view.sort = event.target.value; renderLibrary(); };
+document.getElementById("lib-more").onclick = () => { view.shown += PAGE_SIZE; renderLibrary(); };
+// moving between the editor's fields must not redraw it; leaving it for good does
+document.getElementById("lib-detail").addEventListener("focusout", () => setTimeout(renderDetail, 0));
+document.getElementById("n-streamer").onchange = applyCreatorLook;
+document.getElementById("src-add").onclick = addSource;
+document.getElementById("src-list").addEventListener("focusout", () => setTimeout(renderSources, 0));
+document.getElementById("cr-save").onclick = saveCreator;
+document.getElementById("cs-pick").onchange = loadCaption;
+document.getElementById("ls-pick").onchange = loadLayout;
+document.getElementById("ls-type").onchange = showLayoutFields;
+for (const id of ["cs-font", "cs-size", "cs-outline", "cs-primary", "cs-outline-colour", "cs-title-colour", "cs-box", "cs-box2"]) document.getElementById(id).oninput = paintSample;
+document.getElementById("cs-title-font").onchange = paintSample;
+for (const id of ["cs-box-on", "cs-box2-on"]) document.getElementById(id).onchange = paintSample;
+buildSwatches();
+const captionGroup = () => ({
+  font: document.getElementById("cs-font").value, size: Number(document.getElementById("cs-size").value),
+  primary: hexToAss(document.getElementById("cs-primary").value), outline_colour: hexToAss(document.getElementById("cs-outline-colour").value),
+  outline: Number(document.getElementById("cs-outline").value), margin_v: Number(document.getElementById("cs-margin").value),
+});
+const titleGroup = () => ({
+  title_colour: document.getElementById("cs-title-colour").value, bottom_colour: document.getElementById("cs-bottom-colour").value,
+  title_font: document.getElementById("cs-title-font").value,
+  // "" tells the server to drop the stored box colour or title font
+  title_box: document.getElementById("cs-box-on").checked ? document.getElementById("cs-box").value : "",
+  title_box_to: document.getElementById("cs-box-on").checked && document.getElementById("cs-box2-on").checked ? document.getElementById("cs-box2").value : "",
+});
+// each button saves only its own group on top of the stored style, so unsaved edits in the other group are left alone; a new style needs both
+function saveCaptionGroup(group) {
+  const chosen = document.getElementById("cs-pick").value;
+  const stored = chosen ? state.presets.captions[chosen] : null;
+  const preset = stored ? { ...stored, ...group() } : { ...captionGroup(), ...titleGroup() };
+  const afterSave = () => { if (stored) { document.getElementById("cs-used").textContent = usedBy("caption", chosen); paintSample(); } else loadCaption(); };
+  return saveStyle("captions", "cs-pick", "cs-name", preset, "cs-problems", afterSave);
+}
+document.getElementById("cs-save").onclick = () => saveCaptionGroup(captionGroup);
+document.getElementById("cs-title-save").onclick = () => saveCaptionGroup(titleGroup);
+document.getElementById("ls-save").onclick = () => {
+  const preset = { type: document.getElementById("ls-type").value, cam_crop: document.getElementById("ls-cam-crop").value.trim() };
+  const fields = { game_crop: "ls-game-crop", cam_height: "ls-cam-height", big_width: "ls-big-width" };
+  for (const [key, id] of Object.entries(fields)) {
+    const value = document.getElementById(id).value.trim();
+    if (value !== "") preset[key] = key === "game_crop" ? value : Number(value);
+  }
+  return saveStyle("layouts", "ls-pick", "ls-name", preset, "ls-problems", loadLayout);
+};
+document.getElementById("n-title").oninput = event => {
+  document.getElementById("n-count").textContent = `${[...event.target.value].length}/28`;
+};
+document.getElementById("n-frame").onclick = () => {
+  const pick = document.getElementById("n-pick").value, seconds = document.getElementById("n-frame-time").value;
+  const source = `/api/frame?pick=${encodeURIComponent(pick)}&t=${encodeURIComponent(seconds)}&token=${encodeURIComponent(TOKEN)}`;
+  document.getElementById("frame-box").replaceChildren(el("img", { alt: `frame of ${pick} at ${seconds} s`, src: source }));
+};
+document.getElementById("n-add").onclick = async () => {
+  const clip = {
+    name: document.getElementById("n-name").value.trim(), streamer: document.getElementById("n-streamer").value,
+    pick: document.getElementById("n-pick").value, title: document.getElementById("n-title").value.trim().toUpperCase(),
+    bottom_line: "", segments: parseSegments(document.getElementById("n-segments").value),
+    caption: document.getElementById("n-caption").value, layout: document.getElementById("n-layout").value,
+  };
+  const hook = document.getElementById("n-hook").value.trim(), body = document.getElementById("n-body").value.trim();
+  const tags = document.getElementById("n-tags").value.split(/[\s,]+/).filter(Boolean);
+  if (hook) clip.hook = hook;
+  if (body) clip.body = body;
+  if (tags.length) clip.extra_tags = tags;
+  const cam = document.getElementById("n-cam").value.trim();
+  if (cam) clip.cam_crop = cam;
+  else { const { own, foreign } = cameraPlan(clip.streamer, clip.layout); if (foreign) clip.cam_crop = own; }
+  const { data } = await api("/api/clip", clip);
+  showProblems("new-problems", data.problems);
+  if (!data.problems.length) await refresh();
+};
+const fillYoutube = replaceEdits => fillText("q-file", "youtube", ["q-title", "q-description"], data => {
+  document.getElementById("q-title").value = data.title;
+  document.getElementById("q-description").value = data.description;
+}, "q-note", replaceEdits);
+const fillFacebook = replaceEdits => fillText("fb-file", "facebook", ["fb-caption"], data => {
+  document.getElementById("fb-caption").value = data.caption;
+}, "fb-note", replaceEdits);
+const fillInstagram = replaceEdits => fillText("ig-file", "facebook", ["ig-caption"], data => {
+  document.getElementById("ig-caption").value = data.caption;
+}, "ig-note", replaceEdits);
+document.getElementById("ig-file").onchange = () => fillInstagram(false);
+document.getElementById("ig-fill").onclick = () => fillInstagram(true);
+const addInstagram = async () => {
+  const time = document.getElementById("ig-time").value, button = document.getElementById("ig-add");
+  const entry = { file: document.getElementById("ig-file").value, caption: document.getElementById("ig-caption").value,
+                  publish_at: time ? time + ":00+06:00" : "" };
+  button.disabled = true;
+  document.getElementById("ig-state").textContent = "making the lighter copy, about a minute...";
+  try {
+    const { data } = await api("/api/instagram/queue", entry);
+    showProblems("ig-problems", data.problems);
+    if (!data.problems.length) await refresh();
+  } finally {
+    button.disabled = false;
+    document.getElementById("ig-state").textContent = "";
+  }
+};
+// the watcher posts a queued reel by itself at its time, so adding one asks for a second click too
+confirmedClick(document.getElementById("ig-add"), { checked: false }, addInstagram, "Queue this reel for posting? Click again");
+document.getElementById("q-file").onchange = () => fillYoutube(false);
+document.getElementById("q-fill").onclick = () => fillYoutube(true);
+document.getElementById("fb-file").onchange = () => fillFacebook(false);
+document.getElementById("fb-fill").onclick = () => fillFacebook(true);
+document.getElementById("n-hook").oninput = event => {
+  document.getElementById("n-hook-count").textContent = `${[...event.target.value].length}/100`;
+};
+document.getElementById("q-time").onchange = () => checkDay();
+document.getElementById("q-add").onclick = async () => {
+  const time = document.getElementById("q-time").value;
+  const entry = { file: document.getElementById("q-file").value, title: document.getElementById("q-title").value.trim(),
+                  description: document.getElementById("q-description").value, publish_at: time ? time + ":00+06:00" : "" };
+  const { data } = await api("/api/queue", entry);
+  showProblems("queue-problems", data.problems);
+  if (!data.problems.length) await refresh();
+};
+document.getElementById("fb-time").onchange = () => checkFacebookDay();
+document.getElementById("fb-add").onclick = async () => {
+  const time = document.getElementById("fb-time").value;
+  const entry = { file: document.getElementById("fb-file").value, caption: document.getElementById("fb-caption").value,
+                  publish_at: time ? time + ":00+06:00" : "" };
+  const { data } = await api("/api/facebook/queue", entry);
+  showProblems("fb-problems", data.problems);
+  if (!data.problems.length) await refresh();
+};
+// a real upload (or a queued reel) needs a second click within 5 seconds; a dry run goes at once
+function confirmedClick(button, dryRun, run, prompt = "Upload for real? Click again") {
+  const idle = button.textContent;
+  let timer = null, armedAt = 0;
+  button.onclick = async () => {
+    if (!dryRun.checked && !timer) {
+      button.textContent = prompt;
+      armedAt = Date.now();
+      timer = setTimeout(() => { timer = null; button.textContent = idle; }, 5000);
+      return;
+    }
+    if (timer && Date.now() - armedAt < 500) return; // a double-click is one click, not a confirmation
+    clearTimeout(timer); timer = null; button.textContent = idle;
+    await run();
+  };
+}
+confirmedClick(document.getElementById("fb-upload"), document.getElementById("fb-dry-run"), async () => {
+  const { data } = await api("/api/facebook/upload", { dry_run: document.getElementById("fb-dry-run").checked });
+  showProblems("fb-problems", data.problems);
+  await refresh();
+});
+confirmedClick(document.getElementById("upload"), document.getElementById("dry-run"), async () => {
+  const { data } = await api("/api/upload", { dry_run: document.getElementById("dry-run").checked });
+  showProblems("queue-problems", data.problems);
+  await refresh();
+});
+
+refresh();
+setInterval(pollLog, 3000);
+</script>
+<script>
+// one panel at a time, chosen by the address (#library, #youtube ...), so a tab can be bookmarked and "Add to queue" can jump to one
+const PANELS = [...document.querySelectorAll("main > .panel")];
+function setMenu(open) {
+  const side = document.getElementById("side");
+  const hadFocus = side.contains(document.activeElement);
+  side.classList.toggle("open", open);
+  // a closed drawer is off screen: keep Tab out of it (the sidebar is always open on a wide screen)
+  const narrow = matchMedia("(max-width: 60rem)").matches;
+  side.inert = narrow && !open;
+  // focus follows the drawer: into it when it opens, back to the Menu button when it closes
+  if (narrow && open) document.getElementById("menu-close").focus();
+  else if (narrow && hadFocus) document.getElementById("menu-open").focus();
+  document.getElementById("menu-open").setAttribute("aria-expanded", String(open));
+}
+document.getElementById("menu-open").onclick = () => setMenu(true);
+document.getElementById("menu-close").onclick = () => setMenu(false);
+document.getElementById("scrim").onclick = () => setMenu(false);
+matchMedia("(max-width: 60rem)").addEventListener("change", () => setMenu(false));
+addEventListener("keydown", event => { if (event.key === "Escape") setMenu(false); });
+function showPanel() {
+  const wanted = PANELS.some((panel) => panel.id === location.hash.slice(1)) ? location.hash.slice(1) : "library";
+  PANELS.forEach((panel) => { panel.hidden = panel.id !== wanted; });
+  // the browser scrolls to the new panel after this runs, which would hide its heading under the bar
+  setTimeout(() => scrollTo(0, 0), 0);
+  document.querySelectorAll(".side nav a").forEach((link) => {
+    if (link.hash.slice(1) === wanted) { link.setAttribute("aria-current", "page"); document.getElementById("page-name").textContent = link.firstChild.textContent.trim(); }
+    else link.removeAttribute("aria-current");
+  });
+  // on a narrow screen the menu is a drawer: choosing a page closes it
+  setMenu(false);
+}
+addEventListener("hashchange", showPanel);
+addEventListener("load", () => scrollTo(0, 0));
+showPanel();
+</script>
+</body>
+</html>
