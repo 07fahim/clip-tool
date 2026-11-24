@@ -2,6 +2,28 @@
 
 Turns stream footage into short vertical clips (9:16) with a title, captions and a follow line, then schedules them on YouTube Shorts, Facebook reels and Instagram reels through the official APIs. A local web page (`scripts/clip_page.html`, served by `scripts/clip_server.py`) drives the whole flow.
 
+## Screenshots
+
+**Library:** every clip as a 9:16 poster with its status, filters and a review state.
+
+![Library: all clips as posters, with filters and status](screenshots/library.jpg)
+
+**Clip editor:** approve or reject a clip, change its hook, caption style, layout, text positions and camera crop, then render it again.
+
+![Clip editor: hook, caption style and layout pickers, approve and reject buttons](screenshots/editor.jpg)
+
+**Styles:** caption styles and layouts, with separate "Save caption style" and "Save title style" buttons and live samples.
+
+![Styles: caption style tiles, layout tiles and their settings](screenshots/styles.jpg)
+
+**Instagram queue:** reels waiting for their time, with free slots and a form to add one.
+
+![Instagram queue: scheduled reels with their status and an add form](screenshots/instagram-queue.jpg)
+
+**Public site** (the `site/` folder): the static home page.
+
+![Public site home page](screenshots/public-site.jpg)
+
 ## Folder structure
 
 ```
@@ -26,6 +48,7 @@ Turns stream footage into short vertical clips (9:16) with a title, captions and
 ├─ tests/                   one test file per script, run with: python tests/test_<name>.py
 ├─ site/                    the public website (static: index, clips, privacy)
 ├─ fonts/                   caption and title fonts (open fonts)
+├─ screenshots/             the pictures shown in this README
 └─ clips/
    └─ presets.json          caption styles, layouts and creator looks (the shared settings)
 ```
